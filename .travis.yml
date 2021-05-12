@@ -1,0 +1,29 @@
+language: cpp
+
+dist: focal
+
+os:
+  - linux
+
+compiler:
+  - gcc
+  - clang
+
+sudo: required
+
+notifications:
+  email:
+    on_sucess: never
+    on_failure: never
+
+addons:
+  apt:
+    packages:
+      - build-essential 
+
+script:
+  - mkdir -p build && cd $_
+  - cmake .. && make -j$(nproc)
+
+after_success:
+  - echo "Everything worked well."
