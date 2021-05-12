@@ -1,29 +1,37 @@
-language: cpp
-
 dist: focal
-
-os:
-  - linux
-
-compiler:
-  - gcc
-  - clang
-
+language: cpp
 sudo: required
 
-notifications:
-  email:
-    on_sucess: never
-    on_failure: never
+matrix:
+  include:
+    - name: gcc on linux
+      os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+      env:
+        - MATRIX_EVAL="CMAKE_GENERATOR='Unix Makefiles' && CXX=g++-10"
+    - name: clang on linux
+      os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-10
+      env:
+        - MATRIX_EVAL="CMAKE_GENERATOR='Unix Makefiles' && CXX=clang++-10"
 
-addons:
-  apt:
-    packages:
-      - build-essential 
+before_install:
+  - eval "${MATRIX_EVAL}"
+
+before_script:
+  - mkdir -p build && cd $_
+  - cmake -G "$CMAKE_GENERATOR" ..
 
 script:
-  - mkdir -p build && cd $_
-  - cmake .. && make -j$(nproc)
+  - cmake --build . -j
 
-after_success:
-  - echo "Everything worked well."
