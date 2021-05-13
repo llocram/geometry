@@ -94,6 +94,6 @@ endif()
 
 add_subdirectory(examples)
 
-# TODO
-# if (WITH_TESTS)
-# endif()
+if (WITH_TESTS)
+  add_subdirectory(test)
+endif()
