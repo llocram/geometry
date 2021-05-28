@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <numbers>
+#include <utility>
 
 namespace geo {
 
@@ -19,6 +20,9 @@ struct line_type {};
 
 template <typename T>
 struct value_type;
+
+template <typename T>
+struct dimension;
 
 template <typename T, std::size_t I>
 struct access {
@@ -50,23 +54,29 @@ struct is_line<T, true> : std::true_type {};
 } // namespace traits
 
 namespace concepts {
+
 template <typename T>
 concept arithmetic = std::integral<T> || std::floating_point<T>;
 
-template <typename T>
-concept point = geo::traits::is_point<T>::value;
+template <typename GeoObject1, typename GeoObject2>
+concept same_dimension =
+  (geo::traits::dimension<GeoObject1>::value ==
+   geo::traits::dimension<GeoObject2>::value);
 
-template <typename T>
-concept circle = geo::traits::is_circle<T>::value;
+template <typename GeoObject>
+concept point = geo::traits::is_point<GeoObject>::value;
 
-template <typename T>
-concept line = geo::traits::is_line<T>::value;
+template <typename GeoObject>
+concept circle = geo::traits::is_circle<GeoObject>::value;
 
-template <typename T>
-concept geo_object = 
-  geo::traits::is_point<T>::value 
-  || geo::traits::is_circle<T>::value
-  || geo::traits::is_line<T>::value;
+template <typename GeoObject>
+concept line = geo::traits::is_line<GeoObject>::value;
+
+template <typename GeoObject>
+concept geo_object =
+  geo::traits::is_point<GeoObject>::value
+  || geo::traits::is_circle<GeoObject>::value
+  || geo::traits::is_line<GeoObject>::value;
 
 template <typename GeoObject, typename T>
 concept value_type_equals =
@@ -81,59 +91,40 @@ concept same_value_type =
 
 /********************* pre-defined geometric entities *************************/
 
-template <typename T = double, typename... Mixins>
+template <typename T, typename... Mixins>
 requires concepts::arithmetic<T>
-struct Vector3d : public Mixins... {
-  Vector3d() = default;
-  Vector3d(T x, T y, T z) : x(x), y(y), z(z) {};
+struct Vector2x : public Mixins... {
+  Vector2x() = default;
+  Vector2x(T x, T y) : x(x), y(y) {};
+
+  T x{};
+  T y{};
+};
+
+template <typename T, typename... Mixins>
+requires concepts::arithmetic<T>
+struct Vector3x : public Mixins... {
+  Vector3x() = default;
+  Vector3x(T x, T y, T z) : x(x), y(y), z(z) {};
 
   T x{};
   T y{};
   T z{};
 };
 
-namespace traits {
-
-template <typename T, typename...Mixins>
-struct tag<Vector3d<T, Mixins...>> { using type = point_type; };
-
-template <typename T, typename... Mixins>
-struct value_type<Vector3d<T, Mixins...>> { using type = T; };
-
-template <typename T, typename... Mixins>
-struct access<Vector3d<T, Mixins...>, 0> {
-  static T get(Vector3d<T, Mixins...> const & vec) { return vec.x; }
-  static void set(Vector3d<T, Mixins...> & vec, T x) { vec.x = x; }
-};
-
-template <typename T, typename... Mixins>
-struct access<Vector3d<T, Mixins...>, 1> {
-  static T get(Vector3d<T, Mixins...> const & vec) { return vec.y; }
-  static void set(Vector3d<T, Mixins...> & vec, T y) { vec.y = y; }
-};
-
-template <typename T, typename... Mixins>
-struct access<Vector3d<T, Mixins...>, 2> {
-  static T get(Vector3d<T, Mixins...> const & vec) { return vec.z; }
-  static void set(Vector3d<T, Mixins...> & vec, T z) { vec.z = z; }
-};
-}
+using Vector2d = Vector2x<double>;
+using Vector3d = Vector3x<double>;
 
 template <typename Point>
 requires concepts::point<Point>
 struct Line {
   Line() = default;
-  Line(Point const & start, Point const & end) : start(start), end(end) {}
+  Line(Point const & start, Point const & end)
+    : start(start), end(end) {}
 
   Point start{};
   Point end{};
 };
-
-namespace traits {
-
-template <typename Point> 
-struct tag<Line<Point>> { using type = line_type; };
-}
 
 template <typename Point, typename T = double>
 requires concepts::point<Point> && concepts::value_type_equals<Point, T>
@@ -151,9 +142,69 @@ struct Circle {
 
 namespace traits {
 
-template <typename Point, typename T> 
+template <typename T, typename...Mixins>
+struct tag<Vector2x<T, Mixins...>> { using type = point_type; };
+
+template <typename T, typename... Mixins>
+struct value_type<Vector2x<T, Mixins...>> {
+  using type = T;
+};
+
+template <typename T, typename...Mixins>
+struct dimension<Vector2x<T, Mixins...>> {
+  static constexpr std::size_t value = 2;
+};
+
+template <typename T, typename... Mixins>
+struct access<Vector2x<T, Mixins...>, 0> {
+  static T get(Vector2x<T, Mixins...> const & vec) { return vec.x; }
+  static void set(Vector2x<T, Mixins...> & vec, T x) { vec.x = x; }
+};
+
+template <typename T, typename... Mixins>
+struct access<Vector2x<T, Mixins...>, 1> {
+  static T get(Vector2<T, Mixins...> const & vec) { return vec.y; }
+  static void set(Vector2x<T, Mixins...> & vec, T y) { vec.y = y; }
+};
+
+template <typename T, typename...Mixins>
+struct tag<Vector3x<T, Mixins...>> { using type = point_type; };
+
+template <typename T, typename... Mixins>
+struct value_type<Vector3x<T, Mixins...>> {
+  using type = T;
+};
+
+template <typename T, typename...Mixins>
+struct dimension<Vector3x<T, Mixins...>> {
+  static constexpr std::size_t value = 3;
+};
+
+template <typename T, typename... Mixins>
+struct access<Vector3x<T, Mixins...>, 0> {
+  static T get(Vector3x<T, Mixins...> const & vec) { return vec.x; }
+  static void set(Vector3x<T, Mixins...> & vec, T x) { vec.x = x; }
+};
+
+template <typename T, typename... Mixins>
+struct access<Vector3x<T, Mixins...>, 1> {
+  static T get(Vector3x<T, Mixins...> const & vec) { return vec.y; }
+  static void set(Vector3x<T, Mixins...> & vec, T y) { vec.y = y; }
+};
+
+template <typename T, typename... Mixins>
+struct access<Vector3x<T, Mixins...>, 2> {
+  static T get(Vector3x<T, Mixins...> const & vec) { return vec.z; }
+  static void set(Vector3x<T, Mixins...> & vec, T z) { vec.z = z; }
+};
+
+template <typename Point>
+struct tag<Line<Point>> { using type = line_type; };
+
+template <typename Point, typename T>
 struct tag<Circle<T, Point>> { using type = circle_type; };
-}
+
+} // namespace traits
 
 /******************************* Algorithm ************************************/
 
@@ -161,8 +212,9 @@ namespace detail {
 
 template <typename Point1, typename Point2>
 requires concepts::point<Point1>
-  && concepts::point<Point2>
-  && concepts::same_value_type<Point1, Point2>
+      && concepts::point<Point2>
+      && concepts::same_value_type<Point1, Point2>
+      && concepts::same_dimension<Point1, Point2>
 typename traits::value_type<Point1>::type
 distance_impl(
     Point1 const & lhs, Point2 const & rhs,
@@ -179,13 +231,25 @@ sqrtNewtonRaphson(T x, T curr, T prev) noexcept {
     : sqrtNewtonRaphson(x, T(0.5) * (curr + x / curr), curr);
 }
 
+template <typename Point1, typename Point2, std::size_t ... I>
+requires concepts::point<Point1>
+      && concepts::point<Point2>
+      && concepts::same_value_type<Point1, Point2>
+      && concepts::same_dimension<Point1, Point2>
+typename traits::value_type<Point1>::type
+dot_product_impl(
+    Point1 const & lhs, Point2 const & rhs, std::index_sequence<I...> const &) {
+  using traits::access;
+  return ((access<Point1, I>::get(lhs) * access<Point2, I>::get(rhs)) + ...);
+}
+
 } // namespace detail
 
 template <typename T>
 requires std::floating_point<T>
 constexpr T
 radiansToDegree(T radians) noexcept {
-  return radians * T(180) / std::numbers::pi;
+  return radians * T(180.0) / std::numbers::pi;
 }
 
 template <typename T>
@@ -204,21 +268,22 @@ sqrt(T x) noexcept {
     : std::numeric_limits<double>::quiet_NaN();
 }
 
-template <typename Point>
-requires concepts::point<Point>
-constexpr typename traits::value_type<Point>::type
-normSquared(Point const & point) {
-  using traits::access;
-  return access<Point, 0>::get(point) * access<Point, 0>::get(point)
-       + access<Point, 1>::get(point) * access<Point, 1>::get(point)
-       + access<Point, 2>::get(point) * access<Point, 2>::get(point);
+template <typename Point1, typename Point2>
+requires concepts::point<Point1>
+      && concepts::point<Point2>
+      && concepts::same_value_type<Point1, Point2>
+      && concepts::same_dimension<Point1, Point2>
+typename traits::value_type<Point1>::type
+dot_product(Point1 const & lhs, Point1 const & rhs) {
+  return detail::dot_product_impl(
+    lhs, rhs, std::make_index_sequence<traits::dimension<Point1>::value>());
 }
 
 template <typename Point>
 requires concepts::point<Point>
 constexpr traits::value_type<Point>::type
 norm(Point const & point) {
-  return sqrt(normSquared(point));
+  return sqrt(dot_product<Point, Point>(point, point));
 }
 
 template <typename Point>
@@ -242,16 +307,6 @@ distance(Geo1 const & lhs, Geo2 const & rhs) {
   return detail::distance_impl(
     lhs, rhs,
     typename traits::tag<Geo1>::type(), typename traits::tag<Geo2>::type());
-}
-
-template <typename Point>
-requires concepts::point<Point>
-typename traits::value_type<Point>::type
-dot_product(Point const & lhs, Point const & rhs) {
-  using traits::access;
-  return access<Point, 0>::get(lhs) * access<Point, 0>::get(rhs)
-       + access<Point, 1>::get(lhs) * access<Point, 1>::get(rhs)
-       + access<Point, 2>::get(lhs) * access<Point, 2>::get(rhs);
 }
 
 template <typename Point>
