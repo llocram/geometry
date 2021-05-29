@@ -33,7 +33,8 @@ struct access {
 template <typename T>
 struct tag;
 
-template <typename T, bool point = std::is_same_v<typename tag<T>::type, point_type>>
+template <typename T, bool point = (std::is_same_v<typename tag<T>::type, point_type>
+                                 && std::is_arithmetic_v<typename value_type<T>::type>)>
 struct is_point : std::false_type {};
 
 template <typename T>
@@ -163,7 +164,7 @@ struct access<Vector2x<T, Mixins...>, 0> {
 
 template <typename T, typename... Mixins>
 struct access<Vector2x<T, Mixins...>, 1> {
-  static T get(Vector2<T, Mixins...> const & vec) { return vec.y; }
+  static T get(Vector2x<T, Mixins...> const & vec) { return vec.y; }
   static void set(Vector2x<T, Mixins...> & vec, T y) { vec.y = y; }
 };
 
@@ -206,24 +207,13 @@ struct tag<Circle<T, Point>> { using type = circle_type; };
 
 } // namespace traits
 
-/******************************* Algorithm ************************************/
+/******************************* algorithm ************************************/
 
 namespace detail {
 
-template <typename Point1, typename Point2>
-requires concepts::point<Point1>
-      && concepts::point<Point2>
-      && concepts::same_value_type<Point1, Point2>
-      && concepts::same_dimension<Point1, Point2>
-typename traits::value_type<Point1>::type
-distance_impl(
-    Point1 const & lhs, Point2 const & rhs,
-    traits::point_type, traits::point_type) noexcept {
-  return norm(lhs - rhs);
-}
-
+/* don't use std::sqrt, it is neither constexpr nor noexcept */
 template <typename T>
-requires concepts::arithmetic<T>
+requires std::floating_point<T>
 constexpr T
 sqrtNewtonRaphson(T x, T curr, T prev) noexcept {
   return curr == prev
@@ -238,9 +228,9 @@ requires concepts::point<Point1>
       && concepts::same_dimension<Point1, Point2>
 typename traits::value_type<Point1>::type
 dot_product_impl(
-    Point1 const & lhs, Point2 const & rhs, std::index_sequence<I...> const &) {
+    Point1 const & lhs, Point2 const & rhs, std::index_sequence<I...> const &) noexcept {
   using traits::access;
-  return ((access<Point1, I>::get(lhs) * access<Point2, I>::get(rhs)) + ...);
+  return (... + (access<Point1, I>::get(lhs) * access<Point2, I>::get(rhs)));
 }
 
 } // namespace detail
@@ -253,7 +243,22 @@ radiansToDegree(T radians) noexcept {
 }
 
 template <typename T>
-constexpr std::enable_if_t<std::is_floating_point<T>::value, T>
+requires std::floating_point<T>
+constexpr T
+degreeToRadians(T degree) noexcept {
+  return degree / T(180.0) * std::numbers::pi;
+}
+
+template <typename T>
+requires std::integral<T>
+constexpr double
+degreeToRadians(T degree) noexcept {
+  return degreeToRadians(static_cast<double>(degree));
+}
+
+template <typename T>
+requires std::floating_point<T>
+constexpr T
 sqrt(T x) noexcept {
   return x >= T() && x < std::numeric_limits<T>::infinity()
     ? detail::sqrtNewtonRaphson(x, x, T())
@@ -261,11 +266,10 @@ sqrt(T x) noexcept {
 }
 
 template <typename T>
-constexpr std::enable_if_t<std::is_integral<T>::value, double>
+requires std::integral<T>
+constexpr double
 sqrt(T x) noexcept {
-  return x >= 0 && x < std::numeric_limits<double>::infinity()
-    ? detail::sqrtNewtonRaphson(static_cast<double>(x), static_cast<double>(x), 0.0)
-    : std::numeric_limits<double>::quiet_NaN();
+  return sqrt(static_cast<double>(x));
 }
 
 template <typename Point1, typename Point2>
@@ -274,36 +278,139 @@ requires concepts::point<Point1>
       && concepts::same_value_type<Point1, Point2>
       && concepts::same_dimension<Point1, Point2>
 typename traits::value_type<Point1>::type
-dot_product(Point1 const & lhs, Point1 const & rhs) {
+dot_product(Point1 const & lhs, Point1 const & rhs) noexcept {
   return detail::dot_product_impl(
     lhs, rhs, std::make_index_sequence<traits::dimension<Point1>::value>());
 }
 
 template <typename Point>
 requires concepts::point<Point>
-constexpr traits::value_type<Point>::type
+constexpr auto
 norm(Point const & point) {
   return sqrt(dot_product<Point, Point>(point, point));
 }
 
-template <typename Point>
+namespace detail {
+
+template <typename Point1, typename Point2>
+requires concepts::point<Point1>
+      && concepts::point<Point2>
+      && concepts::same_value_type<Point1, Point2>
+      && concepts::same_dimension<Point1, Point2>
+constexpr auto
+distance_impl(
+    Point1 const & lhs, Point2 const & rhs,
+    traits::point_type, traits::point_type) noexcept {
+  return norm(lhs - rhs);
+}
+
+template <typename Point, std::size_t... I>
 requires concepts::point<Point>
-Point
-operator-(Point const & lhs, Point const & rhs) {
+constexpr Point
+substract_impl(Point const & lhs, Point const & rhs, std::index_sequence<I...> const &) noexcept {
   using traits::access;
   Point retval;
-  access<Point, 0>::set(retval, access<Point, 0>::get(lhs) - access<Point, 0>::get(rhs));
-  access<Point, 1>::set(retval, access<Point, 1>::get(lhs) - access<Point, 1>::get(rhs));
-  access<Point, 2>::set(retval, access<Point, 2>::get(lhs) - access<Point, 2>::get(rhs));
+  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) - access<Point, I>::get(rhs)));
   return retval;
+}
+
+template <typename Point, std::size_t... I>
+requires concepts::point<Point>
+constexpr Point
+addition_impl(Point const & lhs, Point const & rhs, std::index_sequence<I...> const &) noexcept {
+  using traits::access;
+  Point retval;
+  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) + access<Point, I>::get(rhs)));
+  return retval;
+}
+
+template <typename Point, typename T, std::size_t... I>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
+constexpr Point
+multiply_impl(Point const & lhs, T scalar, std::index_sequence<I...> const &) noexcept {
+  using traits::access;
+  Point retval;
+  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) * scalar));
+  return retval;
+}
+
+template <typename Point, typename T, std::size_t... I>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
+constexpr Point
+division_impl(Point const & lhs, T scalar, std::index_sequence<I...> const &) noexcept(std::is_floating_point_v<T>) {
+  if constexpr (std::is_integral_v<T>) {
+    if (scalar == 0) {
+      throw std::runtime_error("division by zero");
+    }
+  }
+  using traits::access;
+  Point retval;
+  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) / scalar));
+  return retval;
+}
+
+} // namespace detail
+
+template <typename Point>
+requires concepts::point<Point>
+[[nodiscard]] constexpr Point
+operator-(Point const & lhs, Point const & rhs) noexcept {
+  return detail::substract_impl(
+    lhs, rhs, std::make_index_sequence<traits::dimension<Point>::value>());
+}
+
+template <typename Point>
+requires concepts::point<Point>
+[[nodiscard]] constexpr Point
+operator+(Point const & lhs, Point const & rhs) noexcept {
+  return detail::addition_impl(
+    lhs, rhs, std::make_index_sequence<traits::dimension<Point>::value>());
+}
+
+template <typename Point, typename T>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
+[[nodiscard]] constexpr Point
+operator*(Point const & point, T scalar) noexcept {
+  return detail::multiply_impl(
+    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
+}
+
+template <typename Point, typename T>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
+[[nodiscard]] constexpr Point
+operator*(T scalar, Point const & point) noexcept {
+  return detail::multiply_impl(
+    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
+}
+
+template <typename Point, typename T>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
+[[nodiscard]] constexpr Point
+operator/(Point const & point, T scalar) noexcept(std::is_floating_point_v<T>) {
+  return detail::division_impl(
+    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
+}
+
+template <typename Point, typename T>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
+[[nodiscard]] constexpr Point
+operator/(T scalar, Point const & point) noexcept(std::is_floating_point_v<T>) {
+  return detail::division_impl(
+    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
 }
 
 template <typename Geo1, typename Geo2>
 requires concepts::geo_object<Geo1>
-  && concepts::geo_object<Geo2>
-  && concepts::same_value_type<Geo1, Geo2>
-double
-distance(Geo1 const & lhs, Geo2 const & rhs) {
+      && concepts::geo_object<Geo2>
+      && concepts::same_value_type<Geo1, Geo2>
+constexpr auto
+distance(Geo1 const & lhs, Geo2 const & rhs) noexcept {
   return detail::distance_impl(
     lhs, rhs,
     typename traits::tag<Geo1>::type(), typename traits::tag<Geo2>::type());
@@ -311,8 +418,8 @@ distance(Geo1 const & lhs, Geo2 const & rhs) {
 
 template <typename Point>
 requires concepts::point<Point>
-Point
-vector_product(Point const & lhs, Point const & rhs) {
+[[nodiscard]] constexpr Point
+vector_product(Point const & lhs, Point const & rhs) noexcept {
   using traits::access;
   return T(access<Point, 2>::get(lhs) * access<Point, 3>::get(rhs) - access<Point, 3>::get(lhs) * access<Point, 2>::get(rhs),
            access<Point, 3>::get(lhs) * access<Point, 1>::get(rhs) - access<Point, 1>::get(lhs) * access<Point, 3>::get(rhs),
@@ -320,18 +427,18 @@ vector_product(Point const & lhs, Point const & rhs) {
 }
 
 template <typename Point>
-double
+requires concepts::point<Point>
+constexpr auto
 angle(Point const & lhs, Point const & rhs) {
   constexpr auto zero = typename traits::value_type<Point>::type();
   const auto normProduct = norm(lhs) * norm(rhs);
   if (normProduct == zero) {
     throw std::invalid_argument("unable to calculate angle for zero-length vector");
   } else {
-    return std::acos(dot_product(lhs, rhs) / normProduct);
+    return std::acos(dot_product<Point, Point>(lhs, rhs) / normProduct);
   }
 }
 
-}
-
+} // namespace geo
 
 #endif
