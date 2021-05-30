@@ -235,10 +235,8 @@ dot_product_impl(
 
 } // namespace detail
 
-template <typename T>
-requires std::floating_point<T>
-constexpr T
-radiansToDegree(T radians) noexcept {
+constexpr auto
+radiansToDegree(std::floating_point<T> auto radians) noexcept {
   return radians * T(180.0) / std::numbers::pi;
 }
 
@@ -278,7 +276,7 @@ requires concepts::point<Point1>
       && concepts::same_value_type<Point1, Point2>
       && concepts::same_dimension<Point1, Point2>
 typename traits::value_type<Point1>::type
-dot_product(Point1 const & lhs, Point1 const & rhs) noexcept {
+dot_product(Point1 const & lhs, Point2 const & rhs) noexcept {
   return detail::dot_product_impl(
     lhs, rhs, std::make_index_sequence<traits::dimension<Point1>::value>());
 }
@@ -287,7 +285,7 @@ template <typename Point>
 requires concepts::point<Point>
 constexpr auto
 norm(Point const & point) {
-  return sqrt(dot_product<Point, Point>(point, point));
+  return sqrt(dot_product(point, point));
 }
 
 namespace detail {
@@ -392,15 +390,6 @@ requires concepts::point<Point>
       && concepts::value_type_equals<Point, T>
 [[nodiscard]] constexpr Point
 operator/(Point const & point, T scalar) noexcept(std::is_floating_point_v<T>) {
-  return detail::division_impl(
-    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
-}
-
-template <typename Point, typename T>
-requires concepts::point<Point>
-      && concepts::value_type_equals<Point, T>
-[[nodiscard]] constexpr Point
-operator/(T scalar, Point const & point) noexcept(std::is_floating_point_v<T>) {
   return detail::division_impl(
     point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
 }
