@@ -221,7 +221,7 @@ sqrtNewtonRaphson(T x, T curr, T prev) noexcept {
     : sqrtNewtonRaphson(x, T(0.5) * (curr + x / curr), curr);
 }
 
-template <typename Point1, typename Point2, std::size_t ... I>
+template <typename Point1, typename Point2, std::size_t... I>
 requires concepts::point<Point1>
       && concepts::point<Point2>
       && concepts::same_value_type<Point1, Point2>
@@ -235,8 +235,10 @@ dot_product_impl(
 
 } // namespace detail
 
-constexpr auto
-radiansToDegree(std::floating_point<T> auto radians) noexcept {
+template <typename T>
+requires 
+constexpr T
+radiansToDegree(T radians) noexcept {
   return radians * T(180.0) / std::numbers::pi;
 }
 
