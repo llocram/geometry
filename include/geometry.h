@@ -211,7 +211,6 @@ struct tag<Circle<T, Point>> { using type = circle_type; };
 
 namespace detail {
 
-/* don't use std::sqrt, it is neither constexpr nor noexcept */
 template <typename T>
 requires std::floating_point<T>
 constexpr T
@@ -236,7 +235,7 @@ dot_product_impl(
 } // namespace detail
 
 template <typename T>
-requires 
+requires std::floating_point<T>
 constexpr T
 radiansToDegree(T radians) noexcept {
   return radians * T(180.0) / std::numbers::pi;
@@ -259,16 +258,20 @@ degreeToRadians(T degree) noexcept {
 template <typename T>
 requires std::floating_point<T>
 constexpr T
-sqrt(T x) noexcept {
-  return x >= T() && x < std::numeric_limits<T>::infinity()
-    ? detail::sqrtNewtonRaphson(x, x, T())
-    : std::numeric_limits<T>::quiet_NaN();
+sqrt(T x) {
+  if (std::is_constant_evaluated()) {
+    return x >= T() && x < std::numeric_limits<T>::infinity()
+      ? detail::sqrtNewtonRaphson(x, x, T())
+      : std::numeric_limits<T>::quiet_NaN();
+  } else {
+    return std::sqrt(x);
+  }
 }
 
 template <typename T>
 requires std::integral<T>
 constexpr double
-sqrt(T x) noexcept {
+sqrt(T x) {
   return sqrt(static_cast<double>(x));
 }
 
