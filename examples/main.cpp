@@ -21,7 +21,10 @@ int main() {
   const auto vec5 = vec4 * 42.0;
   const auto vec6 = vec5 / 2.0;
 
+  const auto vec7 = vector_product(vec3, vec4);
+  
   UNUSED(vec6)
+  UNUSED(vec7)
 
   return 0;
 }

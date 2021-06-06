@@ -55,12 +55,6 @@ struct is_line : std::false_type {};
 template <typename T>
 struct is_line<T, true> : std::true_type {};
 
-template <typename T, std::size_t I>
-struct access {
-  static value_type_t<T> get(T const &);
-  static void set(T &, value_type_t<T>);
-};
-
 } // namespace traits
 
 namespace concepts {
@@ -72,6 +66,10 @@ template <typename GeoObject1, typename GeoObject2>
 concept same_dimension =
   (geo::traits::dimension_v<GeoObject1> ==
    geo::traits::dimension_v<GeoObject2>);
+
+template <typename GeoObject, std::size_t dimension>
+concept dimension_equals =
+  geo::traits::dimension_v<GeoObject> == dimension;
 
 template <typename GeoObject>
 concept point = geo::traits::is_point<GeoObject>::value;
@@ -98,6 +96,34 @@ concept same_value_type =
                  geo::traits::value_type_t<GeoObject2>>;
 
 } // namespace concepts
+
+namespace traits {
+
+template <typename T, std::size_t I>
+requires concepts::point<T>
+struct access {
+  static traits::value_type_t<T>
+  get(T const &);
+  
+  static void
+  set(T &, traits::value_type_t<T>);
+};
+
+} // namespace traits
+
+template <typename T, std::size_t I>
+requires concepts::point<T>
+static traits::value_type_t<T>
+get(T const & t) {
+  return traits::access<T, I>::get(t);
+}
+
+template <typename T, std::size_t I>
+requires concepts::point<T>
+static void
+set(T & t, traits::value_type_t<T> value) {
+  traits::access<T, I>::set(t, value);
+}
 
 /********************* pre-defined geometric entities *************************/
 
@@ -246,8 +272,7 @@ requires concepts::point<Point1>
 typename traits::value_type<Point1>::type
 dot_product_impl(
     Point1 const & lhs, Point2 const & rhs, std::index_sequence<I...> const &) noexcept {
-  using traits::access;
-  return (... + (access<Point1, I>::get(lhs) * access<Point2, I>::get(rhs)));
+  return (... + (get<Point1, I>(lhs) * get<Point2, I>(rhs)));
 }
 
 } // namespace detail
@@ -329,9 +354,8 @@ template <typename Point, std::size_t... I>
 requires concepts::point<Point>
 constexpr Point
 substract_impl(Point const & lhs, Point const & rhs, std::index_sequence<I...> const &) noexcept {
-  using traits::access;
   Point retval;
-  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) - access<Point, I>::get(rhs)));
+  (..., set<Point, I>(retval, get<Point, I>(lhs) - get<Point, I>(rhs)));
   return retval;
 }
 
@@ -339,9 +363,8 @@ template <typename Point, std::size_t... I>
 requires concepts::point<Point>
 constexpr Point
 addition_impl(Point const & lhs, Point const & rhs, std::index_sequence<I...> const &) noexcept {
-  using traits::access;
   Point retval;
-  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) + access<Point, I>::get(rhs)));
+  (..., set<Point, I>(retval, get<Point, I>(lhs) + get<Point, I>(rhs)));
   return retval;
 }
 
@@ -350,9 +373,8 @@ requires concepts::point<Point>
       && concepts::value_type_equals<Point, T>
 constexpr Point
 multiply_impl(Point const & lhs, T scalar, std::index_sequence<I...> const &) noexcept {
-  using traits::access;
   Point retval;
-  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) * scalar));
+  (..., set<Point, I>(retval, get<Point, I>(lhs) * scalar));
   return retval;
 }
 
@@ -366,9 +388,8 @@ division_impl(Point const & lhs, T scalar, std::index_sequence<I...> const &) no
       throw std::runtime_error("division by zero");
     }
   }
-  using traits::access;
   Point retval;
-  (..., access<Point, I>::set(retval, access<Point, I>::get(lhs) / scalar));
+  (..., set<Point, I>(retval, get<Point, I>(lhs) / scalar));
   return retval;
 }
 
@@ -430,12 +451,13 @@ distance(Geo1 const & lhs, Geo2 const & rhs) noexcept {
 
 template <typename Point>
 requires concepts::point<Point>
+      && concepts::dimension_equals<Point, 3>
 [[nodiscard]] constexpr Point
 vector_product(Point const & lhs, Point const & rhs) noexcept {
-  using traits::access;
-  return T(access<Point, 2>::get(lhs) * access<Point, 3>::get(rhs) - access<Point, 3>::get(lhs) * access<Point, 2>::get(rhs),
-           access<Point, 3>::get(lhs) * access<Point, 1>::get(rhs) - access<Point, 1>::get(lhs) * access<Point, 3>::get(rhs),
-           access<Point, 2>::get(lhs) * access<Point, 3>::get(rhs) - access<Point, 3>::get(rhs) * access<Point, 2>::get(rhs));
+  return Point(
+      get<Point, 1>(lhs) * get<Point, 2>(rhs) - get<Point, 2>(lhs) * get<Point, 1>(rhs),
+      get<Point, 2>(lhs) * get<Point, 0>(rhs) - get<Point, 0>(lhs) * get<Point, 2>(rhs),
+      get<Point, 0>(lhs) * get<Point, 1>(rhs) - get<Point, 1>(rhs) * get<Point, 0>(rhs));
 }
 
 template <typename Point>
