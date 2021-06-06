@@ -19,38 +19,47 @@ struct circle_type {};
 struct line_type {};
 
 template <typename T>
+struct tag;
+
+template <typename T>
+using tag_t = typename tag<T>::type;
+
+template <typename T>
 struct value_type;
+
+template <typename T>
+using value_type_t = typename value_type<T>::type;
 
 template <typename T>
 struct dimension;
 
-template <typename T, std::size_t I>
-struct access {
-  static typename value_type<T>::type get(T const &);
-  static void set(T &, typename value_type<T>::type);
-};
-
 template <typename T>
-struct tag;
+inline constexpr std::size_t dimension_v = dimension<T>::value;
 
-template <typename T, bool point = (std::is_same_v<typename tag<T>::type, point_type>
-                                 && std::is_arithmetic_v<typename value_type<T>::type>)>
+template <typename T, bool point = (std::is_same_v<tag_t<T>, point_type>
+                                 && std::is_arithmetic_v<value_type_t<T>>)>
 struct is_point : std::false_type {};
 
 template <typename T>
 struct is_point<T, true> : std::true_type {};
 
-template <typename T, bool circle = std::is_same_v<typename tag<T>::type, circle_type>>
+template <typename T, bool circle = std::is_same_v<tag_t<T>::type, circle_type>>
 struct is_circle : std::false_type {};
 
 template <typename T>
 struct is_circle<T, true> : std::true_type {};
 
-template <typename T, bool line = std::is_same_v<typename tag<T>::type, line_type>>
+template <typename T, bool line = std::is_same_v<tag_t<T>, line_type>>
 struct is_line : std::false_type {};
 
 template <typename T>
 struct is_line<T, true> : std::true_type {};
+
+template <typename T, std::size_t I>
+struct access {
+  static value_type_t<T> get(T const &);
+  static void set(T &, value_type_t<T>);
+};
 
 } // namespace traits
 
@@ -61,8 +70,8 @@ concept arithmetic = std::integral<T> || std::floating_point<T>;
 
 template <typename GeoObject1, typename GeoObject2>
 concept same_dimension =
-  (geo::traits::dimension<GeoObject1>::value ==
-   geo::traits::dimension<GeoObject2>::value);
+  (geo::traits::dimension_v<GeoObject1> ==
+   geo::traits::dimension_v<GeoObject2>);
 
 template <typename GeoObject>
 concept point = geo::traits::is_point<GeoObject>::value;
@@ -81,12 +90,12 @@ concept geo_object =
 
 template <typename GeoObject, typename T>
 concept value_type_equals =
-  std::is_same_v<typename geo::traits::value_type<GeoObject>::type, T>;
+  std::is_same_v<geo::traits::value_type_t<GeoObject>, T>;
 
 template <typename GeoObject1, typename GeoObject2>
 concept same_value_type =
-  std::is_same_v<typename geo::traits::value_type<GeoObject1>::type,
-                 typename geo::traits::value_type<GeoObject2>::type>;
+  std::is_same_v<geo::traits::value_type_t<GeoObject1>,
+                 geo::traits::value_type_t<GeoObject2>>;
 
 } // namespace concepts
 
@@ -128,7 +137,8 @@ struct Line {
 };
 
 template <typename Point, typename T = double>
-requires concepts::point<Point> && concepts::value_type_equals<Point, T>
+requires concepts::point<Point>
+      && concepts::value_type_equals<Point, T>
 struct Circle {
   Circle() = default;
   Circle(Point const & center, T radius) : center(center), radius(radius) {
@@ -144,7 +154,9 @@ struct Circle {
 namespace traits {
 
 template <typename T, typename...Mixins>
-struct tag<Vector2x<T, Mixins...>> { using type = point_type; };
+struct tag<Vector2x<T, Mixins...>> {
+  using type = point_type;
+};
 
 template <typename T, typename... Mixins>
 struct value_type<Vector2x<T, Mixins...>> {
@@ -168,7 +180,7 @@ struct access<Vector2x<T, Mixins...>, 1> {
   static void set(Vector2x<T, Mixins...> & vec, T y) { vec.y = y; }
 };
 
-template <typename T, typename...Mixins>
+template <typename T, typename... Mixins>
 struct tag<Vector3x<T, Mixins...>> { using type = point_type; };
 
 template <typename T, typename... Mixins>
@@ -176,7 +188,7 @@ struct value_type<Vector3x<T, Mixins...>> {
   using type = T;
 };
 
-template <typename T, typename...Mixins>
+template <typename T, typename... Mixins>
 struct dimension<Vector3x<T, Mixins...>> {
   static constexpr std::size_t value = 3;
 };
@@ -200,10 +212,14 @@ struct access<Vector3x<T, Mixins...>, 2> {
 };
 
 template <typename Point>
-struct tag<Line<Point>> { using type = line_type; };
+struct tag<Line<Point>> {
+  using type = line_type;
+};
 
 template <typename Point, typename T>
-struct tag<Circle<T, Point>> { using type = circle_type; };
+struct tag<Circle<T, Point>> {
+  using type = circle_type;
+};
 
 } // namespace traits
 
@@ -361,7 +377,7 @@ requires concepts::point<Point>
 [[nodiscard]] constexpr Point
 operator-(Point const & lhs, Point const & rhs) noexcept {
   return detail::substract_impl(
-    lhs, rhs, std::make_index_sequence<traits::dimension<Point>::value>());
+    lhs, rhs, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
 template <typename Point>
@@ -369,7 +385,7 @@ requires concepts::point<Point>
 [[nodiscard]] constexpr Point
 operator+(Point const & lhs, Point const & rhs) noexcept {
   return detail::addition_impl(
-    lhs, rhs, std::make_index_sequence<traits::dimension<Point>::value>());
+    lhs, rhs, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
 template <typename Point, typename T>
@@ -378,7 +394,7 @@ requires concepts::point<Point>
 [[nodiscard]] constexpr Point
 operator*(Point const & point, T scalar) noexcept {
   return detail::multiply_impl(
-    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
+    point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
 template <typename Point, typename T>
@@ -387,7 +403,7 @@ requires concepts::point<Point>
 [[nodiscard]] constexpr Point
 operator*(T scalar, Point const & point) noexcept {
   return detail::multiply_impl(
-    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
+    point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
 template <typename Point, typename T>
@@ -396,7 +412,7 @@ requires concepts::point<Point>
 [[nodiscard]] constexpr Point
 operator/(Point const & point, T scalar) noexcept(std::is_floating_point_v<T>) {
   return detail::division_impl(
-    point, scalar, std::make_index_sequence<traits::dimension<Point>::value>());
+    point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
 template <typename Geo1, typename Geo2>
@@ -407,7 +423,7 @@ constexpr auto
 distance(Geo1 const & lhs, Geo2 const & rhs) noexcept {
   return detail::distance_impl(
     lhs, rhs,
-    typename traits::tag<Geo1>::type(), typename traits::tag<Geo2>::type());
+    traits::tag_t<Geo1>(), traits::tag_t<Geo2>());
 }
 
 template <typename Point>
@@ -424,7 +440,7 @@ template <typename Point>
 requires concepts::point<Point>
 constexpr auto
 angle(Point const & lhs, Point const & rhs) {
-  constexpr auto zero = typename traits::value_type<Point>::type();
+  constexpr auto zero = traits::value_type_t<Point>();
   const auto normProduct = norm(lhs) * norm(rhs);
   if (normProduct == zero) {
     throw std::invalid_argument("unable to calculate angle for zero-length vector");
