@@ -14,9 +14,9 @@ namespace geo {
 
 namespace traits {
 
-struct point_type {};
-struct circle_type {};
-struct line_type {};
+struct point_tag {};
+struct circle_tag {};
+struct line_tag {};
 
 template <typename T>
 struct tag;
@@ -36,20 +36,20 @@ struct dimension;
 template <typename T>
 inline constexpr std::size_t dimension_v = dimension<T>::value;
 
-template <typename T, bool point = (std::is_same_v<tag_t<T>, point_type>
+template <typename T, bool point = (std::is_same_v<tag_t<T>, point_tag>
                                  && std::is_arithmetic_v<value_type_t<T>>)>
 struct is_point : std::false_type {};
 
 template <typename T>
 struct is_point<T, true> : std::true_type {};
 
-template <typename T, bool circle = std::is_same_v<tag_t<T>::type, circle_type>>
+template <typename T, bool circle = std::is_same_v<tag_t<T>::type, circle_tag>>
 struct is_circle : std::false_type {};
 
 template <typename T>
 struct is_circle<T, true> : std::true_type {};
 
-template <typename T, bool line = std::is_same_v<tag_t<T>, line_type>>
+template <typename T, bool line = std::is_same_v<tag_t<T>, line_tag>>
 struct is_line : std::false_type {};
 
 template <typename T>
@@ -155,7 +155,7 @@ namespace traits {
 
 template <typename T, typename...Mixins>
 struct tag<Vector2x<T, Mixins...>> {
-  using type = point_type;
+  using type = point_tag;
 };
 
 template <typename T, typename... Mixins>
@@ -181,7 +181,9 @@ struct access<Vector2x<T, Mixins...>, 1> {
 };
 
 template <typename T, typename... Mixins>
-struct tag<Vector3x<T, Mixins...>> { using type = point_type; };
+struct tag<Vector3x<T, Mixins...>> {
+  using type = point_tag;
+};
 
 template <typename T, typename... Mixins>
 struct value_type<Vector3x<T, Mixins...>> {
@@ -211,14 +213,14 @@ struct access<Vector3x<T, Mixins...>, 2> {
   static void set(Vector3x<T, Mixins...> & vec, T z) { vec.z = z; }
 };
 
-template <typename Point>
-struct tag<Line<Point>> {
-  using type = line_type;
-};
-
 template <typename Point, typename T>
 struct tag<Circle<T, Point>> {
-  using type = circle_type;
+  using type = circle_tag;
+};
+
+template <typename Point>
+struct tag<Line<Point>> {
+  using type = line_tag;
 };
 
 } // namespace traits
@@ -319,7 +321,7 @@ requires concepts::point<Point1>
 constexpr auto
 distance_impl(
     Point1 const & lhs, Point2 const & rhs,
-    traits::point_type, traits::point_type) noexcept {
+    traits::point_tag, traits::point_tag) noexcept {
   return norm(lhs - rhs);
 }
 
