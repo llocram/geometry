@@ -43,7 +43,7 @@ struct is_point : std::false_type {};
 template <typename T>
 struct is_point<T, true> : std::true_type {};
 
-template <typename T, bool circle = std::is_same_v<tag_t<T>::type, circle_tag>>
+template <typename T, bool circle = std::is_same_v<tag_t<T>, circle_tag>>
 struct is_circle : std::false_type {};
 
 template <typename T>
