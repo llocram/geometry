@@ -15,8 +15,11 @@ namespace geo {
 namespace traits {
 
 struct point_tag {};
-struct circle_tag {};
 struct line_tag {};
+struct box_tag {};
+struct circle_tag {};
+struct arc_tag {};
+struct bezier_tag {};
 
 template <typename T>
 struct tag;
@@ -36,6 +39,12 @@ struct dimension;
 template <typename T>
 inline constexpr std::size_t dimension_v = dimension<T>::value;
 
+template <typename T>
+struct point_type;
+
+template <typename T>
+using point_type_t = typename point_type<T>::type;
+
 template <typename T, bool point = (std::is_same_v<tag_t<T>, point_tag>
                                  && std::is_arithmetic_v<value_type_t<T>>)>
 struct is_point : std::false_type {};
@@ -43,17 +52,20 @@ struct is_point : std::false_type {};
 template <typename T>
 struct is_point<T, true> : std::true_type {};
 
-template <typename T, bool circle = std::is_same_v<tag_t<T>, circle_tag>>
-struct is_circle : std::false_type {};
-
-template <typename T>
-struct is_circle<T, true> : std::true_type {};
-
 template <typename T, bool line = std::is_same_v<tag_t<T>, line_tag>>
 struct is_line : std::false_type {};
 
 template <typename T>
 struct is_line<T, true> : std::true_type {};
+
+template <typename T, bool circle =
+  (std::is_same_v<tag_t<T>, circle_tag>
+    && is_point<point_type_t<T>>::value
+    && (dimension<point_type_t<T>>::value == 3 || dimension<point_type_t<T>>::value == 2))>
+struct is_circle : std::false_type {};
+
+template <typename T>
+struct is_circle<T, true> : std::true_type {};
 
 } // namespace traits
 
@@ -100,13 +112,30 @@ concept same_value_type =
 namespace traits {
 
 template <typename T, std::size_t I>
-requires concepts::point<T>
 struct access {
-  static traits::value_type_t<T>
+  static value_type_t<T>
   get(T const &);
   
   static void
-  set(T &, traits::value_type_t<T>);
+  set(T &, value_type_t<T>);
+};
+
+template <typename T>
+struct access_center {
+  static typename T::point_type_t const &
+  get(T const &);
+  
+  static void
+  set(T &, typename T::point_type_t const &);
+};
+
+template <typename T>
+struct access_radius {
+  static value_type_t<T>
+  get(T const &);
+  
+  static void
+  set(T &, value_type_t<T>);
 };
 
 } // namespace traits
@@ -123,6 +152,34 @@ requires concepts::point<T>
 static void
 set(T & t, traits::value_type_t<T> value) {
   traits::access<T, I>::set(t, value);
+}
+
+template <typename T, std::size_t I>
+requires concepts::circle<T>
+static traits::value_type_t<T>
+get_center(T const & t) {
+  return traits::access<T, I>::get(traits::access_center<T>::get(t));
+}
+
+template <typename T, std::size_t I>
+requires concepts::circle<T>
+static void
+set_center(T & t, traits::value_type_t<T> value) {
+  traits::access<T, I>::set(traits::access_center<T>::get(t), value);
+}
+
+template <typename T>
+requires concepts::circle<T>
+static traits::value_type_t<T>
+get_radius(T const & t) {
+  return traits::access_radius<T>::get(t);
+}
+
+template <typename T>
+requires concepts::circle<T>
+static void
+set_radius(T & t, traits::value_type_t<T> value) {
+  traits::access_radius<T>::set(t, value);
 }
 
 /********************* pre-defined geometric entities *************************/
@@ -162,19 +219,21 @@ struct Line {
   Point end{};
 };
 
-template <typename Point, typename T = double>
+template <typename Point>
 requires concepts::point<Point>
-      && concepts::value_type_equals<Point, T>
 struct Circle {
+  using value_type = traits::value_type_t<Point>;
+
   Circle() = default;
-  Circle(Point const & center, T radius) : center(center), radius(radius) {
-    if (radius < T()) {
+  Circle(Point const & center, value_type radius)
+    : center(center), radius(radius) {
+    if (radius < value_type()) {
       throw std::invalid_argument("negative radius");
     }
   }
 
   Point center{};
-  T radius{};
+  value_type radius{};
 };
 
 namespace traits {
@@ -239,9 +298,41 @@ struct access<Vector3x<T, Mixins...>, 2> {
   static void set(Vector3x<T, Mixins...> & vec, T z) { vec.z = z; }
 };
 
-template <typename Point, typename T>
-struct tag<Circle<T, Point>> {
+template <typename Point>
+struct tag<Circle<Point>> {
   using type = circle_tag;
+};
+
+template <typename Point>
+struct point_type<Circle<Point>> {
+  using type = Point;
+};
+
+template <typename Point>
+struct value_type<Circle<Point>> {
+  using type = value_type_t<Point>;
+};
+
+template <typename Point>
+struct access_center<Circle<Point>> {
+  static Point const &
+  get(Circle<Point> const &);
+  
+  static void
+  set(Circle<Point> &, Point const &);
+};
+
+template <typename Point>
+struct access_radius<Circle<Point>> {
+  static value_type_t<Point>
+  get(Circle<Point> const & circle) {
+    return circle.radius;
+  }
+  
+  static void
+  set(Circle<Point> & circle, value_type_t<Point> radius) {
+    circle.radius = radius;
+  }
 };
 
 template <typename Point>
@@ -471,6 +562,25 @@ angle(Point const & lhs, Point const & rhs) {
   } else {
     return std::acos(dot_product<Point, Point>(lhs, rhs) / normProduct);
   }
+}
+
+namespace detail {
+
+template <typename Circle>
+requires concepts::circle<Circle>
+constexpr traits::value_type_t<Circle>
+area(Circle const & circle, traits::circle_tag) {
+  using T = traits::value_type_t<Circle>;
+  return T(2.0) * std::numbers::pi_v<T> * get_radius(circle);
+}
+
+} // namespace detail
+
+template <typename Geo>
+requires concepts::geo_object<Geo>
+constexpr traits::value_type_t<Geo>
+area(Geo const & geo_object) {
+  return detail::area(geo_object, traits::tag_t<Geo>());
 }
 
 } // namespace geo

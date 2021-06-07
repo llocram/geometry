@@ -11,7 +11,6 @@ int main() {
   Vector3d vec2(1.0, 0.0, 0.0);
 
   Line<Vector3d> line;
-  Circle circle(Vector3d(1.0, 2.0, 3.0), 2.0);
 
   std::cout << radiansToDegree(angle(vec1, vec2)) << std::endl;
   std::cout << distance(vec1, vec2) << std::endl;
@@ -25,6 +24,11 @@ int main() {
   
   UNUSED(vec6)
   UNUSED(vec7)
+
+  Circle circle(Vector3d(1.0, 2.0, 3.0), 2.0);
+  const auto circleArea = area(circle);
+
+  UNUSED(circleArea)
 
   return 0;
 }
