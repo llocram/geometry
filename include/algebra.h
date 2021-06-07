@@ -90,12 +90,14 @@ vector_product(Point const & lhs, Point const & rhs) noexcept {
 
 template <typename Point>
 requires concepts::point<Point>
-constexpr auto
+const auto
 angle(Point const & lhs, Point const & rhs) {
-  constexpr auto zero = traits::value_type_t<Point>();
+  using value_type = traits::value_type_t<Point>;
+
+  constexpr auto zero = value_type();
   const auto normProduct = norm(lhs) * norm(rhs);
 
-  if constexpr(std::is_integral_v<geo::traits::value_type_t<Point>>) {
+  if constexpr (std::is_integral_v<value_type>) {
     if (normProduct == zero) {
       throw std::invalid_argument("unable to calculate angle for zero-length vector");
     }
