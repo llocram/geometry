@@ -5,6 +5,7 @@
 #include "algorithm.h"
 #include "circle.h"
 #include "line.h"
+#include "math.h"
 #include "point.h"
 #include "traits.h"
 

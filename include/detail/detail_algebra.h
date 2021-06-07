@@ -13,26 +13,6 @@ namespace geo {
 
 namespace detail {
 
-template <typename T>
-requires std::floating_point<T>
-constexpr T
-sqrtNewtonRaphson(T x, T curr, T prev) noexcept {
-  return curr == prev
-    ? curr
-    : sqrtNewtonRaphson(x, T(0.5) * (curr + x / curr), curr);
-}
-
-template <typename Point1, typename Point2, std::size_t... I>
-requires concepts::point<Point1>
-      && concepts::point<Point2>
-      && concepts::same_value_type<Point1, Point2>
-      && concepts::same_dimension<Point1, Point2>
-typename traits::value_type<Point1>::type
-dot_product_impl(
-    Point1 const & lhs, Point2 const & rhs, std::index_sequence<I...> const &) noexcept {
-  return (... + (get<Point1, I>(lhs) * get<Point2, I>(rhs)));
-}
-
 template <typename Point1, typename Point2>
 requires concepts::point<Point1>
       && concepts::point<Point2>
@@ -86,6 +66,17 @@ division_impl(Point const & lhs, T scalar, std::index_sequence<I...> const &) no
   Point retval;
   (..., set<Point, I>(retval, get<Point, I>(lhs) / scalar));
   return retval;
+}
+
+template <typename Point1, typename Point2, std::size_t... I>
+requires concepts::point<Point1>
+      && concepts::point<Point2>
+      && concepts::same_value_type<Point1, Point2>
+      && concepts::same_dimension<Point1, Point2>
+typename traits::value_type<Point1>::type
+dot_product_impl(
+    Point1 const & lhs, Point2 const & rhs, std::index_sequence<I...> const &) noexcept {
+  return (... + (get<Point1, I>(lhs) * get<Point2, I>(rhs)));
 }
 
 } // namespace detail
