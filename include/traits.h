@@ -6,6 +6,8 @@
 
 namespace geo {
 
+/***************************** traits ********************************/
+
 namespace traits {
 
 struct point_tag {};
@@ -55,13 +57,16 @@ struct is_line<T, true> : std::true_type {};
 template <typename T, bool circle =
   (std::is_same_v<tag_t<T>, circle_tag>
     && is_point<point_type_t<T>>::value
-    && (dimension<point_type_t<T>>::value == 3 || dimension<point_type_t<T>>::value == 2))>
+    && (dimension<point_type_t<T>>::value == 3
+        || dimension<point_type_t<T>>::value == 2))>
 struct is_circle : std::false_type {};
 
 template <typename T>
 struct is_circle<T, true> : std::true_type {};
 
 } // namespace traits
+
+/***************************** concepts ********************************/
 
 namespace concepts {
 
@@ -103,77 +108,84 @@ concept same_value_type =
 
 } // namespace concepts
 
+/***************************** adaptors ********************************/
+
 namespace traits {
 
-template <typename T, std::size_t I>
+template <typename Point, std::size_t I>
+requires concepts::point<Point>
 struct access {
-  static value_type_t<T>
-  get(T const &);
+  static value_type_t<Point>
+  get(Point const &);
   
   static void
-  set(T &, value_type_t<T>);
+  set(Point &, value_type_t<Point>);
 };
 
-template <typename T>
+template <typename Circle>
+requires concepts::circle<Circle>
 struct access_center {
-  static typename T::point_type_t const &
-  get(T const &);
+  static typename Circle::point_type_t const &
+  get(Circle const &);
   
   static void
-  set(T &, typename T::point_type_t const &);
+  set(Circle &, typename Circle::point_type_t const &);
 };
 
-template <typename T>
+template <typename Circle>
+requires concepts::circle<Circle>
 struct access_radius {
-  static value_type_t<T>
-  get(T const &);
+  static value_type_t<Circle>
+  get(Circle const &);
   
   static void
-  set(T &, value_type_t<T>);
+  set(Circle &, value_type_t<Circle>);
 };
 
 } // namespace traits
 
-template <typename T, std::size_t I>
-requires concepts::point<T>
-static traits::value_type_t<T>
-get(T const & t) {
-  return traits::access<T, I>::get(t);
+/******************** convenience free functions *****************************/
+
+template <typename Point, std::size_t I>
+requires concepts::point<Point>
+static traits::value_type_t<Point>
+get(Point const & point) {
+  return traits::access<Point, I>::get(point);
 }
 
-template <typename T, std::size_t I>
-requires concepts::point<T>
+template <typename Point, std::size_t I>
+requires concepts::point<Point>
 static void
-set(T & t, traits::value_type_t<T> value) {
-  traits::access<T, I>::set(t, value);
+set(Point & point, traits::value_type_t<Point> value) {
+  traits::access<Point, I>::set(point, value);
 }
 
-template <typename T, std::size_t I>
-requires concepts::circle<T>
-static traits::value_type_t<T>
-get_center(T const & t) {
-  return traits::access<T, I>::get(traits::access_center<T>::get(t));
+template <typename Circle, std::size_t I>
+requires concepts::circle<Circle>
+static traits::value_type_t<Circle>
+get_center(Circle const & circle) {
+  return traits::access<Circle, I>::get(traits::access_center<Circle>::get(circle));
 }
 
-template <typename T, std::size_t I>
-requires concepts::circle<T>
+template <typename Circle, std::size_t I>
+requires concepts::circle<Circle>
 static void
-set_center(T & t, traits::value_type_t<T> value) {
-  traits::access<T, I>::set(traits::access_center<T>::get(t), value);
+set_center(Circle & circle, traits::value_type_t<Circle> value) {
+  traits::access<Circle, I>::set(traits::access_center<Circle>::get(circle), value);
 }
 
-template <typename T>
-requires concepts::circle<T>
-static traits::value_type_t<T>
-get_radius(T const & t) {
-  return traits::access_radius<T>::get(t);
+template <typename Circle>
+requires concepts::circle<Circle>
+static traits::value_type_t<Circle>
+get_radius(Circle const & circle) {
+  return traits::access_radius<Circle>::get(circle);
 }
 
-template <typename T>
-requires concepts::circle<T>
+template <typename Circle>
+requires concepts::circle<Circle>
 static void
-set_radius(T & t, traits::value_type_t<T> value) {
-  traits::access_radius<T>::set(t, value);
+set_radius(Circle & circle, traits::value_type_t<Circle> value) {
+  traits::access_radius<Circle>::set(circle, value);
 }
 
 } // namespace geo
