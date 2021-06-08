@@ -21,29 +21,29 @@ operator+(Point const & lhs, Point const & rhs) noexcept {
     lhs, rhs, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point, typename T>
+template <typename Point, typename Scalar>
 requires concepts::point<Point>
-      && concepts::value_type_equals<Point, T>
+      && concepts::value_type_equals<Point, Scalar>
 [[nodiscard]] constexpr Point
-operator*(Point const & point, T scalar) noexcept {
+operator*(Point const & point, Scalar scalar) noexcept {
   return detail::multiply_impl(
     point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point, typename T>
+template <typename Point, typename Scalar>
 requires concepts::point<Point>
-      && concepts::value_type_equals<Point, T>
+      && concepts::value_type_equals<Point, Scalar>
 [[nodiscard]] constexpr Point
-operator*(T scalar, Point const & point) noexcept {
+operator*(Scalar scalar, Point const & point) noexcept {
   return detail::multiply_impl(
     point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point, typename T>
+template <typename Point, typename Scalar>
 requires concepts::point<Point>
-      && concepts::value_type_equals<Point, T>
+      && concepts::value_type_equals<Point, Scalar>
 [[nodiscard]] constexpr Point
-operator/(Point const & point, T scalar) noexcept(std::is_floating_point_v<T>) {
+operator/(Point const & point, Scalar scalar) noexcept(std::is_floating_point_v<Scalar>) {
   return detail::division_impl(
     point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
@@ -53,7 +53,7 @@ requires concepts::point<Point1>
       && concepts::point<Point2>
       && concepts::same_value_type<Point1, Point2>
       && concepts::same_dimension<Point1, Point2>
-typename traits::value_type<Point1>::type
+constexpr traits::value_type_t<Point1>
 dot_product(Point1 const & lhs, Point2 const & rhs) noexcept {
   return detail::dot_product_impl(
     lhs, rhs, std::make_index_sequence<traits::dimension<Point1>::value>());
@@ -90,20 +90,19 @@ vector_product(Point const & lhs, Point const & rhs) noexcept {
 
 template <typename Point>
 requires concepts::point<Point>
-const auto
+auto
 angle(Point const & lhs, Point const & rhs) {
   using value_type = traits::value_type_t<Point>;
 
-  constexpr auto zero = value_type();
-  const auto normProduct = norm(lhs) * norm(rhs);
+  auto const normProduct = norm(lhs) * norm(rhs);
 
   if constexpr (std::is_integral_v<value_type>) {
-    if (normProduct == zero) {
+    if (normProduct == value_type()) {
       throw std::invalid_argument("unable to calculate angle for zero-length vector");
     }
   }  
   
-  return std::acos(dot_product<Point, Point>(lhs, rhs) / normProduct);
+  return std::acos(dot_product(lhs, rhs) / normProduct);
 }
 
 } // namespace geo
