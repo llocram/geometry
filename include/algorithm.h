@@ -7,8 +7,8 @@ namespace geo {
 
 template <typename Geo>
 requires concepts::geo_object<Geo>
-constexpr traits::value_type_t<Geo>
-area(Geo const & geo_object) {
+constexpr auto
+area(Geo const & geo_object) noexcept {
   return detail::area(geo_object, traits::tag_t<Geo>());
 }
 

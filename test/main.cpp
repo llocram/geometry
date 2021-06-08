@@ -159,8 +159,8 @@ int main() {
     constexpr auto epsilon = 10 * std::numeric_limits<double>::epsilon();
     expect(geo::area(circle) - result < epsilon);
   } | std::vector<std::pair<geo::Circle<geo::Vector3d>, double>>{
-    {geo::Circle<geo::Vector3d>(geo::Vector3d(0.0, 0.0, 0.0), 1.0), 2.0 * 1.0 * std::numbers::pi},
-    {geo::Circle<geo::Vector3d>(geo::Vector3d(1.0, 2.0, 3.0), 4.0), 2.0 * 4.0 * std::numbers::pi}
+    {geo::Circle<geo::Vector3d>(geo::Vector3d(0.0, 0.0, 0.0), 1.0), 1.0 * std::numbers::pi},
+    {geo::Circle<geo::Vector3d>(geo::Vector3d(1.0, 2.0, 3.0), 4.0), 16.0 * std::numbers::pi}
   };
 
   return 0;

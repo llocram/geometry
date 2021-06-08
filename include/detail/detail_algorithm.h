@@ -2,6 +2,7 @@
 #define DETAIL_ALGORITHM_H
 
 #include <numbers>
+#include <type_traits>
 
 #include "traits.h"
 #include "circle.h"
@@ -12,10 +13,14 @@ namespace detail {
 
 template <typename Circle>
 requires concepts::circle<Circle>
-constexpr traits::value_type_t<Circle>
-area(Circle const & circle, traits::circle_tag) {
-  using T = traits::value_type_t<Circle>;
-  return T(2.0) * std::numbers::pi_v<T> * get_radius(circle);
+constexpr auto
+area(Circle const & circle, traits::circle_tag) noexcept {
+  using Scalar = traits::value_type_t<Circle>;
+  if constexpr (std::is_floating_point_v<Scalar>) {
+    return std::numbers::pi_v<Scalar> * get_radius(circle) * get_radius(circle);
+  } else {
+    return std::numbers::pi_v<double> * get_radius(circle) * get_radius(circle);
+  }
 }
 
 } // namespace detail
