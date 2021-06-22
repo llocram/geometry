@@ -3,6 +3,7 @@
 
 #include "algebra.h"
 #include "algorithm.h"
+#include "bezier.h"
 #include "circle.h"
 #include "line.h"
 #include "math.h"

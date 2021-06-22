@@ -18,8 +18,8 @@ struct Vector2x : public Mixins... {
 template <typename T, typename... Mixins>
 requires concepts::arithmetic<T>
 struct Vector3x : public Mixins... {
-  Vector3x() = default;
-  Vector3x(T x, T y, T z) : x(x), y(y), z(z) {};
+  constexpr Vector3x() = default;
+  constexpr Vector3x(T x, T y, T z) : x(x), y(y), z(z) {};
 
   T x{};
   T y{};
@@ -48,14 +48,14 @@ struct dimension<Vector2x<T, Mixins...>> {
 
 template <typename T, typename... Mixins>
 struct access<Vector2x<T, Mixins...>, 0> {
-  static T get(Vector2x<T, Mixins...> const & vec) { return vec.x; }
-  static void set(Vector2x<T, Mixins...> & vec, T x) { vec.x = x; }
+  static constexpr T get(Vector2x<T, Mixins...> const & vec) { return vec.x; }
+  static constexpr void set(Vector2x<T, Mixins...> & vec, T x) { vec.x = x; }
 };
 
 template <typename T, typename... Mixins>
 struct access<Vector2x<T, Mixins...>, 1> {
-  static T get(Vector2x<T, Mixins...> const & vec) { return vec.y; }
-  static void set(Vector2x<T, Mixins...> & vec, T y) { vec.y = y; }
+  static constexpr T get(Vector2x<T, Mixins...> const & vec) { return vec.y; }
+  static constexpr void set(Vector2x<T, Mixins...> & vec, T y) { vec.y = y; }
 };
 
 template <typename T, typename... Mixins>
@@ -75,20 +75,20 @@ struct dimension<Vector3x<T, Mixins...>> {
 
 template <typename T, typename... Mixins>
 struct access<Vector3x<T, Mixins...>, 0> {
-  static T get(Vector3x<T, Mixins...> const & vec) { return vec.x; }
-  static void set(Vector3x<T, Mixins...> & vec, T x) { vec.x = x; }
+  static constexpr T get(Vector3x<T, Mixins...> const & vec) { return vec.x; }
+  static constexpr void set(Vector3x<T, Mixins...> & vec, T x) { vec.x = x; }
 };
 
 template <typename T, typename... Mixins>
 struct access<Vector3x<T, Mixins...>, 1> {
-  static T get(Vector3x<T, Mixins...> const & vec) { return vec.y; }
-  static void set(Vector3x<T, Mixins...> & vec, T y) { vec.y = y; }
+  static constexpr T get(Vector3x<T, Mixins...> const & vec) { return vec.y; }
+  static constexpr void set(Vector3x<T, Mixins...> & vec, T y) { vec.y = y; }
 };
 
 template <typename T, typename... Mixins>
 struct access<Vector3x<T, Mixins...>, 2> {
-  static T get(Vector3x<T, Mixins...> const & vec) { return vec.z; }
-  static void set(Vector3x<T, Mixins...> & vec, T z) { vec.z = z; }
+  static constexpr T get(Vector3x<T, Mixins...> const & vec) { return vec.z; }
+  static constexpr void set(Vector3x<T, Mixins...> & vec, T z) { vec.z = z; }
 };
 
 } // namespace traits

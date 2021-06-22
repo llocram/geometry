@@ -2,33 +2,29 @@
 
 #include <iostream>
 
-using namespace geo;
-
 #define UNUSED(x) {(void)x;}
 
+std::ostream &
+operator<<(std::ostream & os, geo::Vector3d const & vec) {
+  os << "[" << vec.x << ", " << vec.y << ", " << vec.z << "]";
+  return os;
+}
+
 int main() {
-  Vector3d vec1(0.0, 1.0, 0.0);
-  Vector3d vec2(1.0, 0.0, 0.0);
+  using StaticCubicBezier = geo::Bezier<3, geo::Vector3d, std::array<geo::Vector3d, 4>>;
 
-  Line<Vector3d> line;
+  constexpr std::array<geo::Vector3d, 4> ctrls {
+    geo::Vector3d(1.0, 0.0, 0.0),
+    geo::Vector3d(1.0, 0.558, 0.0),
+    geo::Vector3d(0.558, 1.0, 0.0),
+    geo::Vector3d(0.0, 1.0, 0.0)
+  };
 
-  std::cout << radiansToDegree(angle(vec1, vec2)) << std::endl;
-  std::cout << distance(vec1, vec2) << std::endl;
+  constexpr StaticCubicBezier bezier(ctrls);
 
-  const auto vec3 = vec2 - vec1;
-  const auto vec4 = vec3 + vec1;
-  const auto vec5 = vec4 * 42.0;
-  const auto vec6 = vec5 / 2.0;
+  constexpr auto point = geo::evaluateAt(bezier, 0.5);
 
-  const auto vec7 = vector_product(vec3, vec4);
-  
-  UNUSED(vec6)
-  UNUSED(vec7)
-
-  Circle circle(Vector3d(1.0, 2.0, 3.0), 2.0);
-  const auto circleArea = area(circle);
-
-  UNUSED(circleArea)
+  std::cout << point << '\n';
 
   return 0;
 }

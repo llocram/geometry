@@ -6,8 +6,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include "traits.h"
-#include "point.h"
+#include "../traits.h"
+#include "../point.h"
 
 namespace geo {
 

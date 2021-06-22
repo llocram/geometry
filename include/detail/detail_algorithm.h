@@ -4,8 +4,8 @@
 #include <numbers>
 #include <type_traits>
 
-#include "traits.h"
-#include "circle.h"
+#include "../traits.h"
+#include "../circle.h"
 
 namespace geo {
 

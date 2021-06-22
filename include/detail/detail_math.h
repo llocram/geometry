@@ -1,7 +1,7 @@
 #ifndef GEO_DETAIL_MATH_H
 #define GEO_DETAIL_MATH_H
 
-#include "traits.h"
+#include "../traits.h"
 
 namespace geo {
 
