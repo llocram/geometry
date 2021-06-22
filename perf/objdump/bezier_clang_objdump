@@ -1,0 +1,53 @@
+
+bezier_clang.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <_Z8evaluateRKN3geo6BezierILm3ENS_8Vector3xIdJEEESt5arrayIS2_Lm4EEEEd>:
+   0:	48 89 f8             	mov    %rdi,%rax
+   3:	f2 0f 10 0d 00 00 00 	movsd  0x0(%rip),%xmm1        # b <_Z8evaluateRKN3geo6BezierILm3ENS_8Vector3xIdJEEESt5arrayIS2_Lm4EEEEd+0xb>
+   a:	00 
+   b:	f2 0f 5c c8          	subsd  %xmm0,%xmm1
+   f:	66 0f 28 d1          	movapd %xmm1,%xmm2
+  13:	f2 0f 59 d1          	mulsd  %xmm1,%xmm2
+  17:	66 0f 28 e1          	movapd %xmm1,%xmm4
+  1b:	f2 0f 59 e2          	mulsd  %xmm2,%xmm4
+  1f:	66 0f 28 dc          	movapd %xmm4,%xmm3
+  23:	66 0f 14 dc          	unpcklpd %xmm4,%xmm3
+  27:	66 0f 10 2e          	movupd (%rsi),%xmm5
+  2b:	66 0f 59 eb          	mulpd  %xmm3,%xmm5
+  2f:	66 0f 10 76 18       	movupd 0x18(%rsi),%xmm6
+  34:	66 0f 10 7e 30       	movupd 0x30(%rsi),%xmm7
+  39:	f2 0f 59 66 10       	mulsd  0x10(%rsi),%xmm4
+  3e:	66 44 0f 10 46 48    	movupd 0x48(%rsi),%xmm8
+  44:	f2 44 0f 10 0d 00 00 	movsd  0x0(%rip),%xmm9        # 4d <_Z8evaluateRKN3geo6BezierILm3ENS_8Vector3xIdJEEESt5arrayIS2_Lm4EEEEd+0x4d>
+  4b:	00 00 
+  4d:	f2 41 0f 59 d1       	mulsd  %xmm9,%xmm2
+  52:	f2 0f 59 d0          	mulsd  %xmm0,%xmm2
+  56:	66 0f 28 da          	movapd %xmm2,%xmm3
+  5a:	66 0f 14 da          	unpcklpd %xmm2,%xmm3
+  5e:	66 0f 59 de          	mulpd  %xmm6,%xmm3
+  62:	f2 0f 59 56 28       	mulsd  0x28(%rsi),%xmm2
+  67:	66 0f 58 dd          	addpd  %xmm5,%xmm3
+  6b:	f2 0f 58 d4          	addsd  %xmm4,%xmm2
+  6f:	66 0f 28 e0          	movapd %xmm0,%xmm4
+  73:	f2 0f 59 e0          	mulsd  %xmm0,%xmm4
+  77:	f2 41 0f 59 c9       	mulsd  %xmm9,%xmm1
+  7c:	f2 0f 59 cc          	mulsd  %xmm4,%xmm1
+  80:	66 0f 28 e9          	movapd %xmm1,%xmm5
+  84:	66 0f 14 e9          	unpcklpd %xmm1,%xmm5
+  88:	66 0f 59 ef          	mulpd  %xmm7,%xmm5
+  8c:	66 0f 58 eb          	addpd  %xmm3,%xmm5
+  90:	f2 0f 59 4e 40       	mulsd  0x40(%rsi),%xmm1
+  95:	f2 0f 58 ca          	addsd  %xmm2,%xmm1
+  99:	f2 0f 59 e0          	mulsd  %xmm0,%xmm4
+  9d:	66 0f 28 c4          	movapd %xmm4,%xmm0
+  a1:	66 0f 14 c4          	unpcklpd %xmm4,%xmm0
+  a5:	66 41 0f 59 c0       	mulpd  %xmm8,%xmm0
+  aa:	f2 0f 59 66 58       	mulsd  0x58(%rsi),%xmm4
+  af:	66 0f 58 c5          	addpd  %xmm5,%xmm0
+  b3:	f2 0f 58 e1          	addsd  %xmm1,%xmm4
+  b7:	66 0f 11 07          	movupd %xmm0,(%rdi)
+  bb:	f2 0f 11 67 10       	movsd  %xmm4,0x10(%rdi)
+  c0:	c3                   	retq   
