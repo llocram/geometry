@@ -187,11 +187,11 @@ struct access {
 
 template <concepts::circle Circle>
 struct access_center {
-  static constexpr Circle::point_type_t const &
+  static constexpr typename Circle::point_type_t const &
   get(Circle const &);
 
   static constexpr void
-  set(Circle &, Circle::point_type_t const &);
+  set(Circle &, typename Circle::point_type_t const &);
 };
 
 template <concepts::circle Circle>

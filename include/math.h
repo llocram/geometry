@@ -57,7 +57,7 @@ constexpr auto
 max(Head0 && head0, Head1 && head1, Tail && ... tail) {
   auto result = head0 < head1 ? head1 : head0;
   auto max_helper = [&result](auto && el) {
-    result = el < result ? result : el;
+    result = (el < result) ? result : el;
   };
   (..., max_helper(std::forward<Tail>(tail)));
   return result;
@@ -70,7 +70,7 @@ constexpr auto
 min(Head0 && head0, Head1 && head1, Tail && ... tail) {
   auto result = head0 < head1 ? head0 : head1;
   auto min_helper = [&result](auto && el) {
-    result = el < result ? el : min;
+    result = (el < result) ? el : result;
   };
   (..., min_helper(std::forward<Tail>(tail)));
   return result;

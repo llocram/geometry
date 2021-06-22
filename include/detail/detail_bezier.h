@@ -66,7 +66,7 @@ pow(T base) noexcept {
 template <std::floating_point T, std::forward_iterator Iter>
 struct bernstein {
   template <std::size_t... I>
-  static constexpr std::iterator_traits<Iter>::value_type
+  static constexpr typename std::iterator_traits<Iter>::value_type
   evaluateAt(Iter first, T t, std::index_sequence<I...> seq) noexcept {
     return (... + (binom_coeffs[I]
                     * pow<T, seq.size() - I - 1>(T(1.0) - t)

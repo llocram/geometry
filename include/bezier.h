@@ -68,7 +68,7 @@ template <
   concepts::container Cont
 >
 struct const_iter<Bezier<Degree, Point, Cont>> {
-  using type = Cont::const_iterator;
+  using type = typename Cont::const_iterator;
 };
 
 template <
@@ -77,7 +77,7 @@ template <
   concepts::container Cont
 >
 struct iter<Bezier<Degree, Point, Cont>> {
-  using type = Cont::iterator;
+  using type = typename Cont::iterator;
 };
 
 template <
@@ -115,7 +115,7 @@ template <
   concepts::bezier Bezier,
   std::floating_point T
 >
-constexpr std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
 evaluateAt(Bezier const & bezier, T t) noexcept {
   if (std::is_constant_evaluated()) {
     return detail::bernstein<T, geo::traits::const_iter_t<Bezier>>::evaluateAt(
