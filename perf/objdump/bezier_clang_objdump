@@ -31,9 +31,9 @@ Disassembly of section .text:
   62:	f2 0f 59 56 28       	mulsd  0x28(%rsi),%xmm2
   67:	66 0f 58 dd          	addpd  %xmm5,%xmm3
   6b:	f2 0f 58 d4          	addsd  %xmm4,%xmm2
-  6f:	66 0f 28 e0          	movapd %xmm0,%xmm4
-  73:	f2 0f 59 e0          	mulsd  %xmm0,%xmm4
-  77:	f2 41 0f 59 c9       	mulsd  %xmm9,%xmm1
+  6f:	f2 41 0f 59 c9       	mulsd  %xmm9,%xmm1
+  74:	66 0f 28 e0          	movapd %xmm0,%xmm4
+  78:	f2 0f 59 e0          	mulsd  %xmm0,%xmm4
   7c:	f2 0f 59 cc          	mulsd  %xmm4,%xmm1
   80:	66 0f 28 e9          	movapd %xmm1,%xmm5
   84:	66 0f 14 e9          	unpcklpd %xmm1,%xmm5

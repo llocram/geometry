@@ -63,18 +63,26 @@ pow(T base) noexcept {
   }
 }
 
-template <std::floating_point T, std::forward_iterator Iter>
+template <concepts::bezier Bezier>
 struct bernstein {
-  template <std::size_t... I>
-  static constexpr typename std::iterator_traits<Iter>::value_type
-  evaluateAt(Iter first, T t, std::index_sequence<I...> seq) noexcept {
-    return (... + (binom_coeffs[I]
+  template <std::floating_point T, std::size_t... I>
+  static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+  evaluateAt(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept {
+    if (std::is_constant_evaluated()) {
+      return (... + (binom_coeffs[I]
                     * pow<T, seq.size() - I - 1>(T(1.0) - t)
                     * pow<T, I>(t)
-                    * *std::next(first, I)));
+                    * *std::next(cecbegin(bezier), I)));
+    } else {
+      return (... + (binom_coeffs[I]
+                    * pow<T, seq.size() - I - 1>(T(1.0) - t)
+                    * pow<T, I>(t)
+                    * *std::next(cbegin(bezier), I)));    
+    }
   }
 
-  inline static constexpr std::array<std::size_t, 4> binom_coeffs = init_binom_coeffs<4>();
+  inline static constexpr std::array<std::size_t, traits::degree_v<Bezier> + 1> binom_coeffs
+    = init_binom_coeffs<traits::degree_v<Bezier> + 1>();
 };
 
 } // namespace detail

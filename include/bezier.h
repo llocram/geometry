@@ -67,6 +67,15 @@ template <
   concepts::point Point,
   concepts::container Cont
 >
+struct degree<Bezier<Degree, Point, Cont>> {
+  static constexpr std::size_t value = Degree;
+};
+
+template <
+  std::size_t Degree,
+  concepts::point Point,
+  concepts::container Cont
+>
 struct const_iter<Bezier<Degree, Point, Cont>> {
   using type = typename Cont::const_iterator;
 };
@@ -117,13 +126,8 @@ template <
 >
 constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
 evaluateAt(Bezier const & bezier, T t) noexcept {
-  if (std::is_constant_evaluated()) {
-    return detail::bernstein<T, geo::traits::const_iter_t<Bezier>>::evaluateAt(
-      geo::ce_const_iter(bezier), t, std::make_index_sequence<4>{});
-  } else {
-    return detail::bernstein<T, geo::traits::const_iter_t<Bezier>>::evaluateAt(
-      geo::const_iter(bezier), t, std::make_index_sequence<4>{});
-  }
+  return detail::bernstein<Bezier>::evaluateAt(
+      bezier, t, std::make_index_sequence<traits::degree_v<Bezier> + 1>{});
 }
 
 } // namespace geo

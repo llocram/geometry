@@ -43,6 +43,12 @@ template <typename T>
 inline constexpr std::size_t dimension_v = dimension<T>::value;
 
 template <typename T>
+struct degree;
+
+template <typename T>
+inline constexpr std::size_t degree_v = degree<T>::value;
+
+template <typename T>
 struct point_type;
 
 template <typename T>
@@ -260,13 +266,13 @@ set_radius(Circle & circle, traits::value_type_t<Circle> value) {
 
 template <concepts::bezier Bezier>
 static auto
-const_iter(Bezier const & bezier) {
+cbegin(Bezier const & bezier) {
   return traits::access_bezier<Bezier>::cbegin(bezier);
 }
 
 template <concepts::bezier Bezier>
 static constexpr auto
-ce_const_iter(Bezier const & bezier) {
+cecbegin(Bezier const & bezier) {
   return traits::access_bezier<Bezier>::cecbegin(bezier);
 }
 
