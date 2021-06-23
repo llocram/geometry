@@ -1,12 +1,11 @@
-#ifndef GEO_ALGORITHM_H
-#define GEO_ALGORITHM_H
+#ifndef GEO_ALGORITHM_HPP
+#define GEO_ALGORITHM_HPP
 
-#include "detail/detail_algorithm.h"
+#include "detail/detail_algorithm.hpp"
 
 namespace geo {
 
-template <typename Geo>
-requires concepts::geo_object<Geo>
+template <concepts::geo_object Geo>
 constexpr auto
 area(Geo const & geo_object) noexcept {
   return detail::area(geo_object, traits::tag_t<Geo>());

@@ -1,12 +1,11 @@
-#ifndef GEO_BEZIER_H
-#define GEO_BEZIER_H
+#ifndef GEO_BEZIER_HPP
+#define GEO_BEZIER_HPP
 
-#include <concepts>
 #include <vector>
 
-#include "detail/detail_bezier.h"
-#include "point.h"
-#include "traits.h"
+#include "detail/detail_bezier.hpp"
+#include "point.hpp"
+#include "traits.hpp"
 
 namespace geo {
 
@@ -18,7 +17,7 @@ template <
     concepts::container Cont = std::vector<Point>
 >
 struct Bezier {
-  template <concepts::no_array U = Cont>
+  template <concepts::not_an_array U = Cont>
   Bezier()
       : ctrls({}) {}
 
@@ -30,7 +29,7 @@ struct Bezier {
 
   template <
     typename... Args,
-    concepts::no_array U = Cont,
+    concepts::not_an_array U = Cont,
     typename = std::enable_if_t<(!std::is_same_v<std::decay_t<Args>, Bezier> && ... )>
   >
   Bezier(Args && ... args)

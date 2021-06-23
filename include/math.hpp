@@ -1,35 +1,31 @@
-#ifndef GEO_MATH_H
-#define GEO_MATH_H
+#ifndef GEO_MATH_HPP
+#define GEO_MATH_HPP
 
 #include <concepts>
 
-#include "detail/detail_math.h"
+#include "detail/detail_math.hpp"
 
 namespace geo {
 
-template <typename T>
-requires std::floating_point<T>
+template <std::floating_point T>
 constexpr T
 radiansToDegree(T radians) noexcept {
   return radians * T(180.0) / std::numbers::pi;
 }
 
-template <typename T>
-requires std::floating_point<T>
+template <std::floating_point T>
 constexpr T
 degreeToRadians(T degree) noexcept {
   return degree / T(180.0) * std::numbers::pi;
 }
 
-template <typename T>
-requires std::integral<T>
+template <std::integral T>
 constexpr double
 degreeToRadians(T degree) noexcept {
   return degreeToRadians(static_cast<double>(degree));
 }
 
-template <typename T>
-requires std::floating_point<T>
+template <std::floating_point T>
 constexpr T
 sqrt(T x) {
   if (std::is_constant_evaluated()) {
@@ -41,18 +37,17 @@ sqrt(T x) {
   }
 }
 
-template <typename T>
-requires std::integral<T>
+template <std::integral T>
 constexpr double
 sqrt(T x) {
   return sqrt(static_cast<double>(x));
 }
 
-// TODO how to use concepts with variadic template parameters ?
-
-template <typename Head0, typename Head1, typename... Tail>
-requires std::totally_ordered<Head0>
-  && std::totally_ordered<Head1>
+template <
+  std::totally_ordered Head0,
+  std::totally_ordered Head1,
+  std::totally_ordered... Tail
+>
 constexpr auto
 max(Head0 && head0, Head1 && head1, Tail && ... tail) {
   auto result = head0 < head1 ? head1 : head0;
@@ -63,9 +58,11 @@ max(Head0 && head0, Head1 && head1, Tail && ... tail) {
   return result;
 }
 
-template <typename Head0, typename Head1, typename... Tail>
-requires std::totally_ordered<Head0>
-  && std::totally_ordered<Head1> 
+template <
+  std::totally_ordered Head0,
+  std::totally_ordered Head1,
+  std::totally_ordered... Tail
+>
 constexpr auto
 min(Head0 && head0, Head1 && head1, Tail && ... tail) {
   auto result = head0 < head1 ? head0 : head1;

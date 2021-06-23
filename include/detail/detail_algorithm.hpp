@@ -1,18 +1,17 @@
-#ifndef DETAIL_ALGORITHM_H
-#define DETAIL_ALGORITHM_H
+#ifndef DETAIL_ALGORITHM_HPP
+#define DETAIL_ALGORITHM_HPP
 
 #include <numbers>
 #include <type_traits>
 
-#include "../traits.h"
-#include "../circle.h"
+#include "../traits.hpp"
+#include "../circle.hpp"
 
 namespace geo {
 
 namespace detail {
 
-template <typename Circle>
-requires concepts::circle<Circle>
+template <concepts::circle Circle>
 constexpr auto
 area(Circle const & circle, traits::circle_tag) noexcept {
   using Scalar = traits::value_type_t<Circle>;

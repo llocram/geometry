@@ -1,21 +1,22 @@
-#ifndef GEO_CIRCLE_H
-#define GEO_CIRCLE_H
+#ifndef GEO_CIRCLE_HPP
+#define GEO_CIRCLE_HPP
 
 #include <stdexcept>
 
-#include "traits.h"
-#include "point.h"
+#include "traits.hpp"
+#include "point.hpp"
 
 namespace geo {
 
-template <typename Point>
-requires concepts::point<Point>
+/***************************** model ********************************/
+
+template <concepts::point Point>
 struct Circle {
   using value_type = traits::value_type_t<Point>;
 
   Circle() = default;
   Circle(Point const & center, value_type radius)
-    : center(center), radius(radius) {
+      : center(center), radius(radius) {
     if (radius < value_type()) {
       throw std::invalid_argument("negative radius");
     }
@@ -25,24 +26,26 @@ struct Circle {
   value_type radius{};
 };
 
+/***************************** adaptors ********************************/
+
 namespace traits {
 
-template <typename Point>
+template <concepts::point Point>
 struct tag<Circle<Point>> {
   using type = circle_tag;
 };
 
-template <typename Point>
+template <concepts::point Point>
 struct point_type<Circle<Point>> {
   using type = Point;
 };
 
-template <typename Point>
+template <concepts::point Point>
 struct value_type<Circle<Point>> {
   using type = value_type_t<Point>;
 };
 
-template <typename Point>
+template <concepts::point Point>
 struct access_center<Circle<Point>> {
   static Point const &
   get(Circle<Point> const &);
@@ -51,7 +54,7 @@ struct access_center<Circle<Point>> {
   set(Circle<Point> &, Point const &);
 };
 
-template <typename Point>
+template <concepts::point Point>
 struct access_radius<Circle<Point>> {
   static value_type_t<Point>
   get(Circle<Point> const & circle) {

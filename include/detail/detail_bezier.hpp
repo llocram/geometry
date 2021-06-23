@@ -1,5 +1,5 @@
-#ifndef GEO_DETAIL_BEZIER_H
-#define GEO_DETAIL_BEZIER_H
+#ifndef GEO_DETAIL_BEZIER_HPP
+#define GEO_DETAIL_BEZIER_HPP
 
 #include <cmath>
 

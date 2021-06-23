@@ -1,57 +1,50 @@
-#ifndef GEO_ALGEBRA_H
-#define GEO_ALGEBRA_H
+#ifndef GEO_ALGEBRA_HPP
+#define GEO_ALGEBRA_HPP
 
-#include "detail/detail_algebra.h"
+#include "detail/detail_algebra.hpp"
 
 namespace geo {
 
-template <typename Point>
-requires concepts::point<Point>
+template <concepts::point Point>
 [[nodiscard]] constexpr Point
 operator-(Point const & lhs, Point const & rhs) noexcept {
   return detail::substract_impl(
     lhs, rhs, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point>
-requires concepts::point<Point>
+template <concepts::point Point>
 [[nodiscard]] constexpr Point
 operator+(Point const & lhs, Point const & rhs) noexcept {
   return detail::addition_impl(
     lhs, rhs, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point, typename Scalar>
-requires concepts::point<Point>
-      && concepts::value_type_equals<Point, Scalar>
+template <concepts::point Point, typename Scalar>
+requires concepts::value_type_equals<Point, Scalar>
 [[nodiscard]] constexpr Point
 operator*(Point const & point, Scalar scalar) noexcept {
   return detail::multiply_impl(
     point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point, typename Scalar>
-requires concepts::point<Point>
-      && concepts::value_type_equals<Point, Scalar>
+template <concepts::point Point, typename Scalar>
+requires concepts::value_type_equals<Point, Scalar>
 [[nodiscard]] constexpr Point
 operator*(Scalar scalar, Point const & point) noexcept {
   return detail::multiply_impl(
     point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point, typename Scalar>
-requires concepts::point<Point>
-      && concepts::value_type_equals<Point, Scalar>
+template <concepts::point Point, typename Scalar>
+requires concepts::value_type_equals<Point, Scalar>
 [[nodiscard]] constexpr Point
 operator/(Point const & point, Scalar scalar) noexcept(std::is_floating_point_v<Scalar>) {
   return detail::division_impl(
     point, scalar, std::make_index_sequence<traits::dimension_v<Point>>());
 }
 
-template <typename Point1, typename Point2>
-requires concepts::point<Point1>
-      && concepts::point<Point2>
-      && concepts::same_value_type<Point1, Point2>
+template <concepts::point Point1, concepts::point Point2>
+requires concepts::same_value_type<Point1, Point2>
       && concepts::same_dimension<Point1, Point2>
 constexpr traits::value_type_t<Point1>
 dot_product(Point1 const & lhs, Point2 const & rhs) noexcept {
@@ -59,17 +52,14 @@ dot_product(Point1 const & lhs, Point2 const & rhs) noexcept {
     lhs, rhs, std::make_index_sequence<traits::dimension<Point1>::value>());
 }
 
-template <typename Point>
-requires concepts::point<Point>
+template <concepts::point Point>
 constexpr auto
 norm(Point const & point) {
   return sqrt(dot_product(point, point));
 }
 
-template <typename Geo1, typename Geo2>
-requires concepts::geo_object<Geo1>
-      && concepts::geo_object<Geo2>
-      && concepts::same_value_type<Geo1, Geo2>
+template <concepts::geo_object Geo1, concepts::geo_object Geo2>
+requires concepts::same_value_type<Geo1, Geo2>
 constexpr auto
 distance(Geo1 const & lhs, Geo2 const & rhs) noexcept {
   return detail::distance_impl(
@@ -77,9 +67,8 @@ distance(Geo1 const & lhs, Geo2 const & rhs) noexcept {
     traits::tag_t<Geo1>(), traits::tag_t<Geo2>());
 }
 
-template <typename Point>
-requires concepts::point<Point>
-      && concepts::dimension_equals<Point, 3>
+template <concepts::point Point>
+requires concepts::dimension_equals<Point, 3>
 [[nodiscard]] constexpr Point
 vector_product(Point const & lhs, Point const & rhs) noexcept {
   return Point(
@@ -88,10 +77,9 @@ vector_product(Point const & lhs, Point const & rhs) noexcept {
       get<Point, 0>(lhs) * get<Point, 1>(rhs) - get<Point, 1>(rhs) * get<Point, 0>(rhs));
 }
 
-template <typename Point>
-requires concepts::point<Point>
+template <concepts::point Point>
 auto
-angle(Point const & lhs, Point const & rhs) {
+angle(Point const & lhs, Point const & rhs) noexcept (std::is_floating_point_v<traits::value_type_t<Point>>){
   using value_type = traits::value_type_t<Point>;
 
   auto const normProduct = norm(lhs) * norm(rhs);

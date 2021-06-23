@@ -1,14 +1,13 @@
-#ifndef GEO_DETAIL_MATH_H
-#define GEO_DETAIL_MATH_H
+#ifndef GEO_DETAIL_MATH_HPP
+#define GEO_DETAIL_MATH_HPP
 
-#include "../traits.h"
+#include "../traits.hpp"
 
 namespace geo {
 
 namespace detail {
 
-template <typename T>
-requires std::floating_point<T>
+template <std::floating_point T>
 constexpr T
 sqrtNewtonRaphson(T x, T curr, T prev) noexcept {
   return curr == prev

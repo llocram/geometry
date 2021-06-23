@@ -1,5 +1,5 @@
-#ifndef GEO_TRAITS_H
-#define GEO_TRAITS_H
+#ifndef GEO_TRAITS_HPP
+#define GEO_TRAITS_HPP
 
 #include <array>
 #include <concepts>
@@ -134,7 +134,7 @@ template <typename T>
 concept array = geo::traits::is_array<T>::value;
 
 template <typename T>
-concept no_array = !geo::traits::is_array<T>::value;
+concept not_an_array = !geo::traits::is_array<T>::value;
 
 template <typename T>
 concept arithmetic = std::integral<T> || std::floating_point<T>;
@@ -219,9 +219,6 @@ struct access_bezier {
 
   static iter_t<Bezier>
   begin(Bezier &);
-
-  static constexpr iter_t<Bezier>
-  cebegin(Bezier &);
 };
 
 } // namespace traits
