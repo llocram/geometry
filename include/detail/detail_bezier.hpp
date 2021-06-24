@@ -65,20 +65,34 @@ pow(T base) noexcept {
 
 template <concepts::bezier Bezier>
 struct bernstein {
+  template <std::floating_point T>
+  static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+  evaluate_at(Bezier const & bezier, T t) noexcept {
+    if (std::is_constant_evaluated()) {
+      return ce_evaluate_at_impl(
+        bezier, t, std::make_index_sequence<traits::degree_v<Bezier> + 1>{});
+    } else {
+      return evaluate_at_impl(
+        bezier, t, std::make_index_sequence<traits::degree_v<Bezier> + 1>{});
+    }
+  }
+
   template <std::floating_point T, std::size_t... I>
   static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-  evaluateAt(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept {
-    if (std::is_constant_evaluated()) {
+  ce_evaluate_at_impl(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept {
       return (... + (binom_coeffs[I]
                     * pow<T, seq.size() - I - 1>(T(1.0) - t)
                     * pow<T, I>(t)
                     * *std::next(cecbegin(bezier), I)));
-    } else {
+  }
+
+  template <std::floating_point T, std::size_t... I>
+  static typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+  evaluate_at_impl(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept {
       return (... + (binom_coeffs[I]
                     * pow<T, seq.size() - I - 1>(T(1.0) - t)
                     * pow<T, I>(t)
-                    * *std::next(cbegin(bezier), I)));    
-    }
+                    * *std::next(cbegin(bezier), I)));
   }
 
   inline static constexpr std::array<std::size_t, traits::degree_v<Bezier> + 1> binom_coeffs

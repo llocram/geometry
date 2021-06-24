@@ -157,8 +157,12 @@ concept line = geo::traits::is_line<GeoObject>::value;
 template <typename GeoObject>
 concept circle = geo::traits::is_circle<GeoObject>::value;
 
+template <std::size_t N>
+concept bezier_degree = (N > 0 && N < 11);
+
 template <typename GeoObject>
-concept bezier = geo::traits::is_bezier<GeoObject>::value;
+concept bezier = geo::traits::is_bezier<GeoObject>::value
+              && bezier_degree<traits::degree_v<GeoObject>>;
 
 template <typename GeoObject>
 concept geo_object =

@@ -16,6 +16,7 @@ template <
     concepts::point Point,
     concepts::container Cont = std::vector<Point>
 >
+requires concepts::bezier_degree<Degree>
 struct Bezier {
   template <concepts::not_an_array U = Cont>
   Bezier()
@@ -54,8 +55,8 @@ namespace traits {
 
 template <
   std::size_t Degree,
-  concepts::point Point,
-  concepts::container Cont
+  typename Point,
+  typename Cont
 >
 struct tag<Bezier<Degree, Point, Cont>> {
   using type = bezier_tag;
@@ -63,8 +64,8 @@ struct tag<Bezier<Degree, Point, Cont>> {
 
 template <
   std::size_t Degree,
-  concepts::point Point,
-  concepts::container Cont
+  typename Point,
+  typename Cont
 >
 struct degree<Bezier<Degree, Point, Cont>> {
   static constexpr std::size_t value = Degree;
@@ -72,8 +73,8 @@ struct degree<Bezier<Degree, Point, Cont>> {
 
 template <
   std::size_t Degree,
-  concepts::point Point,
-  concepts::container Cont
+  typename Point,
+  typename Cont
 >
 struct const_iter<Bezier<Degree, Point, Cont>> {
   using type = typename Cont::const_iterator;
@@ -81,8 +82,8 @@ struct const_iter<Bezier<Degree, Point, Cont>> {
 
 template <
   std::size_t Degree,
-  concepts::point Point,
-  concepts::container Cont
+  typename Point,
+  typename Cont
 >
 struct iter<Bezier<Degree, Point, Cont>> {
   using type = typename Cont::iterator;
@@ -90,8 +91,8 @@ struct iter<Bezier<Degree, Point, Cont>> {
 
 template <
   std::size_t Degree,
-  concepts::point Point,
-  concepts::container Cont
+  typename Point,
+  typename Cont
 >
 struct access_bezier<Bezier<Degree, Point, Cont>> {
   static const_iter_t<Bezier<Degree, Point, Cont>>
@@ -108,11 +109,6 @@ struct access_bezier<Bezier<Degree, Point, Cont>> {
   begin(Bezier<Degree, Point, Cont> & bezier) {
     return bezier.ctrls.begin();
   }
-
-  static constexpr iter_t<Bezier<Degree, Point, Cont>>
-  cebegin(Bezier<Degree, Point, Cont> & bezier) {
-    return bezier.ctrls.begin();
-  }
 };
 
 } // namespace traits
@@ -124,9 +120,8 @@ template <
   std::floating_point T
 >
 constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-evaluateAt(Bezier const & bezier, T t) noexcept {
-  return detail::bernstein<Bezier>::evaluateAt(
-      bezier, t, std::make_index_sequence<traits::degree_v<Bezier> + 1>{});
+evaluate_at(Bezier const & bezier, T t) noexcept {
+  return detail::bernstein<Bezier>::evaluate_at(bezier, t);
 }
 
 } // namespace geo
