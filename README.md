@@ -1,1 +1,1 @@
-[![Build Status](https://travis-ci.com/llocram/geometry.svg?branch=main)](https://travis-ci.com/llocram/geometry)
+[![Linux](https://github.com/llocram/geometry/actions/workflows/linux.yml/badge.svg)](https://github.com/llocram/geometry/actions/workflows/linux.yml)
