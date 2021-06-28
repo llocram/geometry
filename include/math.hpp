@@ -2,6 +2,9 @@
 #define GEO_MATH_HPP
 
 #include <concepts>
+#include <cmath>
+#include <limits>
+#include <numbers>
 
 #include "detail/detail_math.hpp"
 

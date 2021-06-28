@@ -1,6 +1,7 @@
 #ifndef GEO_ALGEBRA_HPP
 #define GEO_ALGEBRA_HPP
 
+#include "math.hpp"
 #include "detail/detail_algebra.hpp"
 
 namespace geo {
@@ -88,11 +89,11 @@ angle(Point const & lhs, Point const & rhs) noexcept (std::is_floating_point_v<t
     if (normProduct == value_type()) {
       throw std::invalid_argument("unable to calculate angle for zero-length vector");
     }
-  }  
-  
+  }
+
   return std::acos(dot_product(lhs, rhs) / normProduct);
 }
 
 } // namespace geo
 
-#endif  
+#endif
