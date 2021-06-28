@@ -1,0 +1,52 @@
+---
+name: Linux
+
+on: [push, pull_request]
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Ubuntu GCC",
+            artifact: "Linux.7z",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++-10"
+          }
+        - {
+            name: "Ubuntu Clang",
+            artefact: "Linux.7z",
+            os: ubuntu-latest,
+            cc: "clang",
+            cxx: "clang++-12"
+          }
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Configure
+        shell: cmake -P {0}
+        run: |
+          set(ENV{CC} ${{ matrix.config.cc }})
+          set(ENV{CXX} ${{ matrix.config.cxx }})
+        
+          execute_process(
+            COMMAND cmake
+              -S .
+              -B build
+              -D CMAKE_BUILD_TYPE=Debug
+            RESULT_VARIABLE result
+          )
+          if (NOT result EQUAL 0)
+            message(FATAL_ERROR "Bad exit status")
+          endif()
+        
+      - name: build
+        run: cmake --build build
