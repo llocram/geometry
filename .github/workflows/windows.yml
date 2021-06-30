@@ -15,12 +15,19 @@ jobs:
       matrix:
         config:
         - {
-            name: "Windows MSVC",
+            name: "MSVC",
             artifact: "Windows-MSVC.7z",
             os: windows-latest,
             cc: "cl",
             cxx: "cl",
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          }
+        - {
+            name: "MinGW",
+            artifact: "Windows-MinGW.7z",
+            os: windows-latest,
+            cc: "gcc",
+            cxx: "g++"
           }
     steps:
       - uses: actions/checkout@v1
