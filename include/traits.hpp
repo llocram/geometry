@@ -11,6 +11,12 @@ namespace geo {
 
 namespace traits {
 
+template <bool B, typename T = void>
+using disable_if = std::enable_if<!B, T>;
+
+template <bool B, typename T = void>
+using disable_if_t = std::enable_if_t<!B, T>;
+
 template <typename T>
 struct is_array : public std::false_type {};
 
