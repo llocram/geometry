@@ -12,9 +12,9 @@ namespace geo {
 /***************************** model ********************************/
 
 template <
-    std::size_t Degree,
-    concepts::point Point,
-    concepts::container Cont = std::vector<Point>
+  std::size_t Degree,
+  concepts::point Point,
+  concepts::container Cont = std::vector<Point>
 >
 requires concepts::bezier_degree<Degree>
 struct Bezier {
@@ -29,20 +29,28 @@ struct Bezier {
   }
 
   template <
-    typename... Args,
+    typename Head,
+    typename... Tail,
     concepts::not_an_array U = Cont,
-    typename = std::enable_if_t<(!std::is_same_v<std::decay_t<Args>, Bezier> && ... )>
+    typename = traits::disable_if_t<
+      sizeof...(Tail) == 0
+      && std::is_same_v<std::decay_t<Head>, Bezier>
+    >
   >
-  Bezier(Args && ... args)
-      : ctrls(std::forward<Args>(args)...) {}
+  Bezier(Head && head, Tail && ... tail)
+      : ctrls(std::forward<Head>(head), std::forward<Tail>(tail)...) {}
 
   template <
-    typename... Args,
+    typename Head,
+    typename... Tail,
     concepts::array U = Cont,
-    typename = std::enable_if_t<(!std::is_same_v<std::decay_t<Args>, Bezier> && ... )>
+    typename = traits::disable_if_t<
+      sizeof...(Tail) == 0
+      && std::is_same_v<std::decay_t<Head>, Bezier>
+    >
   >
-  constexpr Bezier(Args && ... args)
-      : ctrls{std::forward<Args>(args)...} {
+  constexpr Bezier(Head && head, Tail && ... tail)
+      : ctrls{std::forward<Head>(head), std::forward<Tail>(tail)...} {
     static_assert(sizeof(Cont) == (Degree + 1) * sizeof(Point));
   }
 
