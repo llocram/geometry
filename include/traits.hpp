@@ -194,7 +194,7 @@ namespace traits {
 
 template <concepts::point Point, std::size_t I>
 struct access {
-  static constexpr value_type_t<Point>
+  [[nodiscard]] static constexpr value_type_t<Point>
   get(Point const &);
 
   static constexpr void
@@ -235,54 +235,61 @@ struct access_bezier {
 
 /******************** convenience free functions *****************************/
 
-template <concepts::point Point, std::size_t I>
-static constexpr traits::value_type_t<Point>
-get(Point const & point) {
+template <std::size_t I, concepts::point Point>
+[[nodiscard]] static constexpr traits::value_type_t<Point>
+get(Point const & point)
+{
   return traits::access<Point, I>::get(point);
 }
 
-template <concepts::point Point, std::size_t I>
+template <std::size_t I, concepts::point Point>
 static constexpr void
-set(Point & point, traits::value_type_t<Point> value) {
+set(Point & point, traits::value_type_t<Point> value)
+{
   traits::access<Point, I>::set(point, value);
 }
 
 template <concepts::circle Circle, std::size_t I>
-static traits::value_type_t<Circle>
-get_center(Circle const & circle) {
+[[nodiscard]] static traits::value_type_t<Circle>
+get_center(Circle const & circle)
+{
   return traits::access<Circle, I>::get(traits::access_center<Circle>::get(circle));
 }
 
 template <concepts::circle Circle, std::size_t I>
 static void
-set_center(Circle & circle, traits::value_type_t<Circle> value) {
+set_center(Circle & circle, traits::value_type_t<Circle> value)
+{
   traits::access<Circle, I>::set(traits::access_center<Circle>::get(circle), value);
 }
 
 template <concepts::circle Circle>
-static traits::value_type_t<Circle>
-get_radius(Circle const & circle) {
+[[nodiscard]] static traits::value_type_t<Circle>
+get_radius(Circle const & circle)
+{
   return traits::access_radius<Circle>::get(circle);
 }
 
 template <concepts::circle Circle>
 static void
-set_radius(Circle & circle, traits::value_type_t<Circle> value) {
+set_radius(Circle & circle, traits::value_type_t<Circle> value)
+{
   traits::access_radius<Circle>::set(circle, value);
 }
 
 template <concepts::bezier Bezier>
-static auto
-cbegin(Bezier const & bezier) {
+[[nodiscard]] static auto
+cbegin(Bezier const & bezier)
+{
   return traits::access_bezier<Bezier>::cbegin(bezier);
 }
 
 template <concepts::bezier Bezier>
-static constexpr auto
-cecbegin(Bezier const & bezier) {
+[[nodiscard]] static constexpr auto
+cecbegin(Bezier const & bezier)
+{
   return traits::access_bezier<Bezier>::cecbegin(bezier);
 }
-
 
 } // namespace geo
 

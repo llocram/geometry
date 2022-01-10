@@ -11,7 +11,7 @@ template <concepts::arithmetic T, typename... Mixins>
 struct Vector2x : public Mixins...
 {
   constexpr Vector2x() = default;
-  constexpr Vector2x(T x, T y)
+  constexpr Vector2x(T x, T y) noexcept
       : x(x), y(y)
   {}
 
@@ -23,7 +23,7 @@ template <concepts::arithmetic T, typename... Mixins>
 struct Vector3x : public Mixins...
 {
   constexpr Vector3x() = default;
-  constexpr Vector3x(T x, T y, T z)
+  constexpr Vector3x(T x, T y, T z) noexcept
       : x(x), y(y), z(z)
   {}
 
