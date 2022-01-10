@@ -13,11 +13,11 @@ namespace geo {
 
 namespace detail {
 
-template <concepts::point Point>
-constexpr auto
+[[nodiscard]] constexpr auto
 distance_impl(
-    Point const & lhs, Point const & rhs,
-    traits::point_tag, traits::point_tag) noexcept {
+    concepts::point auto const & lhs, concepts::point auto const & rhs,
+    traits::point_tag, traits::point_tag) noexcept
+{
   return norm(lhs - rhs);
 }
 

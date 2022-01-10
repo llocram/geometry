@@ -17,14 +17,17 @@ template <
   concepts::container Cont = std::vector<Point>
 >
 requires concepts::bezier_degree<Degree>
-struct Bezier {
+struct Bezier
+{
   template <concepts::not_an_array U = Cont>
   Bezier()
-      : ctrls({}) {}
+      : ctrls({})
+  {}
 
   template <concepts::array U = Cont>
   constexpr Bezier()
-      : ctrls({}) {
+      : ctrls({})
+  {
     static_assert(sizeof(Cont) == (Degree + 1) * sizeof(Point));
   }
 
@@ -38,7 +41,8 @@ struct Bezier {
     >
   >
   Bezier(Head && head, Tail && ... tail)
-      : ctrls(std::forward<Head>(head), std::forward<Tail>(tail)...) {}
+      : ctrls(std::forward<Head>(head), std::forward<Tail>(tail)...)
+  {}
 
   template <
     typename Head,
@@ -50,7 +54,8 @@ struct Bezier {
     >
   >
   constexpr Bezier(Head && head, Tail && ... tail)
-      : ctrls{std::forward<Head>(head), std::forward<Tail>(tail)...} {
+      : ctrls{std::forward<Head>(head), std::forward<Tail>(tail)...}
+  {
     static_assert(sizeof(Cont) == (Degree + 1) * sizeof(Point));
   }
 
@@ -66,7 +71,8 @@ template <
   typename Point,
   typename Cont
 >
-struct tag<Bezier<Degree, Point, Cont>> {
+struct tag<Bezier<Degree, Point, Cont>>
+{
   using type = bezier_tag;
 };
 
@@ -75,7 +81,8 @@ template <
   typename Point,
   typename Cont
 >
-struct degree<Bezier<Degree, Point, Cont>> {
+struct degree<Bezier<Degree, Point, Cont>>
+{
   static constexpr std::size_t value = Degree;
 };
 
@@ -84,7 +91,8 @@ template <
   typename Point,
   typename Cont
 >
-struct const_iter<Bezier<Degree, Point, Cont>> {
+struct const_iter<Bezier<Degree, Point, Cont>>
+{
   using type = typename Cont::const_iterator;
 };
 
@@ -93,7 +101,8 @@ template <
   typename Point,
   typename Cont
 >
-struct iter<Bezier<Degree, Point, Cont>> {
+struct iter<Bezier<Degree, Point, Cont>>
+{
   using type = typename Cont::iterator;
 };
 
@@ -102,19 +111,23 @@ template <
   typename Point,
   typename Cont
 >
-struct access_bezier<Bezier<Degree, Point, Cont>> {
-  static const_iter_t<Bezier<Degree, Point, Cont>>
-  cbegin(Bezier<Degree, Point, Cont> const & bezier) {
+struct access_bezier<Bezier<Degree, Point, Cont>>
+{
+  [[nodiscard]] static const_iter_t<Bezier<Degree, Point, Cont>>
+  cbegin(Bezier<Degree, Point, Cont> const & bezier)
+  {
     return bezier.ctrls.cbegin();
   }
 
-  static constexpr const_iter_t<Bezier<Degree, Point, Cont>>
-  cecbegin(Bezier<Degree, Point, Cont> const & bezier) {
+  [[nodiscard]] static constexpr const_iter_t<Bezier<Degree, Point, Cont>>
+  cecbegin(Bezier<Degree, Point, Cont> const & bezier)
+  {
     return bezier.ctrls.cbegin();
   }
 
-  static iter_t<Bezier<Degree, Point, Cont>>
-  begin(Bezier<Degree, Point, Cont> & bezier) {
+  [[nodiscard]] static iter_t<Bezier<Degree, Point, Cont>>
+  begin(Bezier<Degree, Point, Cont> & bezier)
+  {
     return bezier.ctrls.begin();
   }
 };
@@ -127,8 +140,9 @@ template <
   concepts::bezier Bezier,
   std::floating_point T
 >
-constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-evaluate_at(Bezier const & bezier, T t) noexcept {
+[[nodiscard]] constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+evaluate_at(Bezier const & bezier, T t) noexcept
+{
   return detail::bernstein<Bezier>::evaluate_at(bezier, t);
 }
 

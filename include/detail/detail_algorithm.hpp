@@ -12,10 +12,12 @@ namespace geo {
 namespace detail {
 
 template <concepts::circle Circle>
-constexpr auto
-area(Circle const & circle, traits::circle_tag) noexcept {
+[[nodiscard]] constexpr auto
+area(Circle const & circle, traits::circle_tag) noexcept
+{
   using Scalar = traits::value_type_t<Circle>;
-  if constexpr (std::is_floating_point_v<Scalar>) {
+
+  if constexpr (std::floating_point<Scalar>) {
     return std::numbers::pi_v<Scalar> * get_radius(circle) * get_radius(circle);
   } else {
     return std::numbers::pi_v<double> * get_radius(circle) * get_radius(circle);

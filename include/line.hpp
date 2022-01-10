@@ -9,10 +9,12 @@ namespace geo {
 /***************************** model ********************************/
 
 template <concepts::point Point>
-struct Line {
-  Line() = default;
-  Line(Point const & start, Point const & end)
-      : start(start), end(end) {}
+struct Line
+{
+  constexpr Line() = default;
+  constexpr Line(Point const & start, Point const & end)
+      : start(start), end(end)
+  {}
 
   Point start{};
   Point end{};
@@ -23,7 +25,8 @@ struct Line {
 namespace traits {
 
 template <concepts::point Point>
-struct tag<Line<Point>> {
+struct tag<Line<Point>>
+{
   using type = line_tag;
 };
 

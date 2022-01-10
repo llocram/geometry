@@ -6,9 +6,10 @@
 namespace geo {
 
 template <concepts::geo_object Geo>
-constexpr auto
-area(Geo const & geo_object) noexcept {
-  return detail::area(geo_object, traits::tag_t<Geo>());
+[[nodiscard]] constexpr auto
+area(Geo const & geo_object) noexcept
+{
+  return detail::area(geo_object, traits::tag_t<Geo>{});
 }
 
 } // namespace geo

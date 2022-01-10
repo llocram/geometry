@@ -8,26 +8,30 @@ namespace geo {
 namespace detail {
 
 template <std::size_t... I>
-consteval std::size_t
-factorial_impl(std::index_sequence<I...>) noexcept {
+[[nodiscard]] consteval std::size_t
+factorial_impl(std::index_sequence<I...>) noexcept
+{
   return (1 * ... * (I + 1));
 }
 
 template <std::size_t N>
-consteval std::size_t
-factorial() noexcept {
+[[nodiscard]] consteval std::size_t
+factorial() noexcept
+{
   return factorial_impl(std::make_index_sequence<N>{});
 }
 
 template <std::size_t N, std::size_t K>
-consteval std::size_t
-binom_coeff() noexcept {
+[[nodiscard]] consteval std::size_t
+binom_coeff() noexcept
+{
   return factorial<N>() / (factorial<K>() * factorial<N - K>());
 }
 
 template <std::size_t N, std::size_t... I>
-consteval std::array<std::size_t, N>
-init_binom_coeffs_impl(std::index_sequence<I...>) noexcept {
+[[nodiscard]] consteval std::array<std::size_t, N>
+init_binom_coeffs_impl(std::index_sequence<I...>) noexcept
+{
   std::array<std::size_t, N> retval {};
   auto helper = [&](std::size_t i, std::size_t result) {
     retval[i] = result;
@@ -37,14 +41,16 @@ init_binom_coeffs_impl(std::index_sequence<I...>) noexcept {
 }
 
 template <std::size_t N>
-consteval std::array<std::size_t, N>
-init_binom_coeffs() noexcept {
+[[nodiscard]] consteval std::array<std::size_t, N>
+init_binom_coeffs() noexcept
+{
   return init_binom_coeffs_impl<N>(std::make_index_sequence<N>{});
 }
 
 template <std::floating_point T, std::size_t... I>
-constexpr T
-pow_impl(T base, std::index_sequence<I...>) noexcept {
+[[nodiscard]] constexpr T
+pow_impl(T base, std::index_sequence<I...>) noexcept
+{
   T result = base;
   [[maybe_unused]] auto pow_helper = [&result, base](T) {
     result *= base;
@@ -54,8 +60,9 @@ pow_impl(T base, std::index_sequence<I...>) noexcept {
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr T
-pow(T base) noexcept {
+[[nodiscard]] constexpr T
+pow(T base) noexcept
+{
   if constexpr (N == 0) {
     return 1;
   } else {
@@ -64,10 +71,12 @@ pow(T base) noexcept {
 }
 
 template <concepts::bezier Bezier>
-struct bernstein {
+struct bernstein
+{
   template <std::floating_point T>
-  static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-  evaluate_at(Bezier const & bezier, T t) noexcept {
+  [[nodiscard]] static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+  evaluate_at(Bezier const & bezier, T t) noexcept
+  {
     if (std::is_constant_evaluated()) {
       return ce_evaluate_at_impl(
         bezier, t, std::make_index_sequence<traits::degree_v<Bezier> + 1>{});
@@ -78,8 +87,9 @@ struct bernstein {
   }
 
   template <std::floating_point T, std::size_t... I>
-  static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-  ce_evaluate_at_impl(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept {
+  [[nodiscard]] static constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+  ce_evaluate_at_impl(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept
+  {
       return (... + (binom_coeffs[I]
                     * pow<T, seq.size() - I - 1>(T(1.0) - t)
                     * pow<T, I>(t)
@@ -87,8 +97,9 @@ struct bernstein {
   }
 
   template <std::floating_point T, std::size_t... I>
-  static typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-  evaluate_at_impl(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept {
+  [[nodiscard]] static typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
+  evaluate_at_impl(Bezier const & bezier, T t, std::index_sequence<I...> seq) noexcept
+  {
       return (... + (binom_coeffs[I]
                     * pow<T, seq.size() - I - 1>(T(1.0) - t)
                     * pow<T, I>(t)

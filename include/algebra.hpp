@@ -113,15 +113,15 @@ angle(Point const & lhs, Point const & rhs) noexcept (std::is_floating_point_v<t
 {
   using value_type = traits::value_type_t<Point>;
 
-  auto const normProduct = norm(lhs) * norm(rhs);
+  auto const norm_product = norm(lhs) * norm(rhs);
 
   if constexpr (std::is_integral_v<value_type>) {
-    if (normProduct == value_type()) {
+    if (norm_product == value_type{}) {
       throw std::invalid_argument("unable to calculate angle for zero-length vector");
     }
   }
 
-  return std::acos(dot_product(lhs, rhs) / normProduct);
+  return std::acos(dot_product(lhs, rhs) / norm_product);
 }
 
 } // namespace geo
