@@ -25,12 +25,12 @@ struct Bezier
   {}
 
   template <concepts::array U = Cont>
+  requires (sizeof(Cont) == (Degree + 1) * sizeof(Point))
   constexpr Bezier()
       : ctrls({})
-  {
-    static_assert(sizeof(Cont) == (Degree + 1) * sizeof(Point));
-  }
+  {}
 
+  // TODO check if disable_if can be replaced with C++20 constrains
   template <
     typename Head,
     typename... Tail,
@@ -44,6 +44,7 @@ struct Bezier
       : ctrls(std::forward<Head>(head), std::forward<Tail>(tail)...)
   {}
 
+  // TODO check if disable_if can be replaced with C++20 constrains
   template <
     typename Head,
     typename... Tail,
@@ -53,11 +54,10 @@ struct Bezier
       && std::is_same_v<std::decay_t<Head>, Bezier>
     >
   >
+  requires ((sizeof(Cont) == (Degree + 1) * sizeof(Point)))
   constexpr Bezier(Head && head, Tail && ... tail)
       : ctrls{std::forward<Head>(head), std::forward<Tail>(tail)...}
-  {
-    static_assert(sizeof(Cont) == (Degree + 1) * sizeof(Point));
-  }
+  {}
 
   Cont ctrls{};
 };
@@ -68,7 +68,7 @@ namespace traits {
 
 template <
   std::size_t Degree,
-  typename Point,
+  concepts::point Point,
   typename Cont
 >
 struct tag<Bezier<Degree, Point, Cont>>
@@ -78,8 +78,8 @@ struct tag<Bezier<Degree, Point, Cont>>
 
 template <
   std::size_t Degree,
-  typename Point,
-  typename Cont
+  concepts::point Point,
+  concepts::container Cont
 >
 struct degree<Bezier<Degree, Point, Cont>>
 {
@@ -88,8 +88,8 @@ struct degree<Bezier<Degree, Point, Cont>>
 
 template <
   std::size_t Degree,
-  typename Point,
-  typename Cont
+  concepts::point Point,
+  concepts::container Cont
 >
 struct const_iter<Bezier<Degree, Point, Cont>>
 {
@@ -98,8 +98,8 @@ struct const_iter<Bezier<Degree, Point, Cont>>
 
 template <
   std::size_t Degree,
-  typename Point,
-  typename Cont
+  concepts::point Point,
+  concepts::container Cont
 >
 struct iter<Bezier<Degree, Point, Cont>>
 {
@@ -108,25 +108,25 @@ struct iter<Bezier<Degree, Point, Cont>>
 
 template <
   std::size_t Degree,
-  typename Point,
-  typename Cont
+  concepts::point Point,
+  concepts::container Cont
 >
 struct access_bezier<Bezier<Degree, Point, Cont>>
 {
   [[nodiscard]] static const_iter_t<Bezier<Degree, Point, Cont>>
-  cbegin(Bezier<Degree, Point, Cont> const & bezier)
+  cbegin(Bezier<Degree, Point, Cont> const & bezier) noexcept
   {
     return bezier.ctrls.cbegin();
   }
 
   [[nodiscard]] static constexpr const_iter_t<Bezier<Degree, Point, Cont>>
-  cecbegin(Bezier<Degree, Point, Cont> const & bezier)
+  cecbegin(Bezier<Degree, Point, Cont> const & bezier) noexcept
   {
     return bezier.ctrls.cbegin();
   }
 
   [[nodiscard]] static iter_t<Bezier<Degree, Point, Cont>>
-  begin(Bezier<Degree, Point, Cont> & bezier)
+  begin(Bezier<Degree, Point, Cont> & bezier) noexcept
   {
     return bezier.ctrls.begin();
   }
@@ -136,12 +136,9 @@ struct access_bezier<Bezier<Degree, Point, Cont>>
 
 /***************************** algorithms ********************************/
 
-template <
-  concepts::bezier Bezier,
-  std::floating_point T
->
+template <concepts::bezier Bezier>
 [[nodiscard]] constexpr typename std::iterator_traits<traits::const_iter_t<Bezier>>::value_type
-evaluate_at(Bezier const & bezier, T t) noexcept
+evaluate_at(Bezier const & bezier, std::floating_point auto t) noexcept
 {
   return detail::bernstein<Bezier>::evaluate_at(bezier, t);
 }
